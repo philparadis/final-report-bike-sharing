@@ -1,12 +1,12 @@
 default.work.dir <- "D:/stat5703w/bike-sharing"
 hedos.work.dir <- "/proj/stat5703w/bike-sharing"
-yue.work.dir <- "C:/Users/Yue/Desktop/Research_Project/research/bike-sharing"
+yue.work.dir <- "C:/Users/Yue/Desktop/STAT5703/bike-sharing"
 
 switch(Sys.info()[['user']],
        # Working directory for user "hedos"
        hedos = {  work.dir <- hedos.work.dir },
        # Working directory for user "yue"
-       yue = { work.dir <- yue.work.dir },
+       Yue = { work.dir <- yue.work.dir },
        # If no matching username was found, use default working directory
        { work.dir <- default.work.dir })
 setwd(work.dir)
