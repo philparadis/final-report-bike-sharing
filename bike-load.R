@@ -96,9 +96,57 @@ tail(d.bike, 5)
 # gives "cnt".
 d.bike.easy <- d.bike[,-c(1,2,3,8, 10, 15,16)]
 
-train.index <- createDataPartition(d.bike.easy$cnt, p=.7, list=F)
+train.index <- 1:(nrow(d.bike.easy) * 0.70)
 d.train <- d.bike.easy[train.index, ]
 d.test <- d.bike.easy[-train.index, ]
 
-rf.fit <- randomForest(cnt ~ ., data=d.train, ntree=500)
+rf.fit <- randomForest(cnt ~ ., data=d.train, ntree=50)
 rf.pred <- predict(rf.fit, d.test)
+
+# Compute RMSE
+rf.rmse <- sqrt(mean((rf.pred - d.test$cnt)^2))
+cat(paste0("RMSE = ", rf.rmse, "\n"))
+
+# Plot first 100 points in test dataset and compare with predictions
+show.ind <- 1:100
+plot(show.ind, d.test$cnt[show.ind], type="o")
+points(show.ind, rf.pred[show.ind], type="o", col="red")
+
+max.cnt <- max(d.test$cnt[show.ind])
+
+lines(show.ind, d.test$atemp[show.ind]*max.cnt, col="blue")
+lines(show.ind, d.test$hum[show.ind]*max.cnt, col="darkgreen")
+lines(show.ind, d.test$windspeed[show.ind]*max.cnt, col="purple")
+points(show.ind, d.test$workingday[show.ind]*max.cnt, col="orange")
+
+
+### Let's train for regression on "cnt" with a neural network now!
+
+d.bike.short <- d.bike[1:4000, -c(1,2,3,8, 10, 15,16)]
+train.index <- 1:(nrow(d.bike.short) * 0.70)
+d.train <- d.bike.short[train.index, ]
+d.test <- d.bike.short[-train.index, ]
+
+# Neural net parameters
+h.size <- 15
+maxit <- 500
+decay <- 0.001
+
+# Train neural net
+nn.fit <- nnet(cnt ~ ., data=d.train,
+               #Wts=rep(1/2, (ncol(d.bike.short)+1)*h.size+(h.size+1)*1),
+               size=h.size,
+               decay=decay,
+               linout=TRUE)
+nn.pred <- predict(nn.fit, d.test)
+
+# Compute RMSE
+nn.rmse <- sqrt(mean((nn.pred - d.test$cnt)^2))
+cat(paste0("RMSE = ", nn.rmse, "\n"))
+
+# Plot first 100 points in test dataset and compare with predictions
+show.ind <- 1:(8*24)
+plot(show.ind, d.test$cnt[show.ind], type="o")
+points(show.ind, nn.pred[show.ind], type="o", col="red")
+max.cnt <- max(d.test$cnt[show.ind])
+lines(show.ind, d.bike[row.names(d.test[show.ind,]),"weekday"]/6*max.cnt, col="blue")
