@@ -57,96 +57,109 @@ setClass("myDate")
 setAs("character", "myDate", function (from) strptime(from, "%Y-%m-%d", tz="UTC"))
 
 ### Read the Bike Sharing Dataset
-filename <- "data/hour.csv"
-d.bike <-read.table(filename, header=TRUE, sep=",",
-           colClasses = c("integer",
-                          "myDate",
-                          "integer",
-                          "integer",
-                          "integer",
-                          "integer",
-                          "integer",
-                          "integer",
-                          "integer",
-                          "integer",
-                          "numeric",
-                          "numeric",
-                          "numeric",
-                          "numeric",
-                          "integer",
-                          "integer",
-                          "integer"))
+hourly.filename <- "data/hour.csv"
+bike.hourly.raw <-read.table(hourly.filename, header=TRUE, sep=",",
+                        colClasses = c("integer",
+                                       "myDate",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "numeric",
+                                       "numeric",
+                                       "numeric",
+                                       "numeric",
+                                       "integer",
+                                       "integer",
+                                       "integer"))
 
 ### Validate that data was loaded correctly
-# Print dimensions
-dim(d.bike)
+dim(bike.hourly.raw)  # Print dimensions
+bike.hourly.raw[1:5,]  # Print first 5 rows...
+tail(bike.hourly.raw, 5)  # Print last 5 rows...
 
-# Print first 5 rows...
-d.bike[1:5,]
+### Read the Bike Sharing Dataset
+daily.filename <- "data/day.csv"
+bike.daily.raw <-read.table(daily.filename, header=TRUE, sep=",",
+                             colClasses = c("integer",
+                                            "myDate",
+                                            "integer",
+                                            "integer",
+                                            "integer",
+                                            "integer",
+                                            "integer",
+                                            "integer",
+                                            "integer",
+                                            "numeric",
+                                            "numeric",
+                                            "numeric",
+                                            "numeric",
+                                            "integer",
+                                            "integer",
+                                            "integer"))
 
-# Print last 5 rows...
-tail(d.bike, 5)
+### Validate that data was loaded correctly
+dim(bike.daily.raw)  # Print dimensions
+bike.daily.raw[1:5,]  # Print first 5 rows...
+tail(bike.daily.raw, 5)  # Print last 5 rows...
+
+#############################################
+### Data pre-processing
+#############################################
+
+levels.binary <- as.factor(c(0, 1))
+
+bike.hourly <- with(bike.hourly.raw,
+                    data.frame(instant=instant,
+                               date=dteday,
+                               datetime=dteday + hr*3600,
+                               season=factor(season, levels=c(1,2,3,4),
+                                             labels=c("spring","summer","fall","winter")),
+                               yr=factor(yr, levels=c(0,1), labels=c("2011","2012")),
+                               mnth=factor(mnth, levels=1:12,
+                                           labels=c("Jan","Feb","Mar","Apr",
+                                                    "May","Jun","Jul","Aug",
+                                                    "Sep","Oct","Nov","Dec")),
+                               hr=hr,
+                               holiday=factor(holiday, levels=levels.binary),
+                               weekday=factor(weekday, levels=0:6,
+                                              labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat")),
+                               workingday=factor(workingday, levels=levels.binary),
+                               weathersit=factor(weathersit, levels=c(1,2,3,4),
+                                                 labels=c("clear","misty","rainy","stormy")),
+                               atemp=atemp,
+                               temp=temp,
+                               hum=hum, 
+                               windspeed=windspeed,
+                               casual=casual,
+                               registered=registered,
+                               cnt=cnt))
 
 
-### Example of training a classifier for regression on "cnt"
-
-# For simplicity of using the classifier, remove column "instant", 
-# "dteday" as well as all categorical variables with more than 2
-# categories. Also remove "casual" and "registered" since their sum
-# gives "cnt".
-d.bike.easy <- d.bike[,-c(1,2,3,8, 10, 15,16)]
-
-train.index <- 1:(nrow(d.bike.easy) * 0.70)
-d.train <- d.bike.easy[train.index, ]
-d.test <- d.bike.easy[-train.index, ]
-
-rf.fit <- randomForest(cnt ~ ., data=d.train, ntree=50)
-rf.pred <- predict(rf.fit, d.test)
-
-# Compute RMSE
-rf.rmse <- sqrt(mean((rf.pred - d.test$cnt)^2))
-cat(paste0("RMSE = ", rf.rmse, "\n"))
-
-# Plot first 100 points in test dataset and compare with predictions
-show.ind <- 1:100
-plot(show.ind, d.test$cnt[show.ind], type="o")
-points(show.ind, rf.pred[show.ind], type="o", col="red")
-
-max.cnt <- max(d.test$cnt[show.ind])
-
-lines(show.ind, d.test$atemp[show.ind]*max.cnt, col="blue")
-lines(show.ind, d.test$hum[show.ind]*max.cnt, col="darkgreen")
-lines(show.ind, d.test$windspeed[show.ind]*max.cnt, col="purple")
-points(show.ind, d.test$workingday[show.ind]*max.cnt, col="orange")
-
-
-### Let's train for regression on "cnt" with a neural network now!
-
-d.bike.short <- d.bike[1:4000, -c(1,2,3,8, 10, 15,16)]
-train.index <- 1:(nrow(d.bike.short) * 0.70)
-d.train <- d.bike.short[train.index, ]
-d.test <- d.bike.short[-train.index, ]
-
-# Neural net parameters
-h.size <- 15
-maxit <- 500
-decay <- 0.001
-
-# Train neural net
-nn.fit <- nnet(cnt ~ ., data=d.train,
-               #Wts=rep(1/2, (ncol(d.bike.short)+1)*h.size+(h.size+1)*1),
-               size=h.size,
-               decay=decay,
-               linout=TRUE)
-nn.pred <- predict(nn.fit, d.test)
-
-# Compute RMSE
-nn.rmse <- sqrt(mean((nn.pred - d.test$cnt)^2))
-cat(paste0("RMSE = ", nn.rmse, "\n"))
-
-# Plot first 100 points in test dataset and compare with predictions
-show.ind <- 1:(8*24)
-plot(show.ind, d.test$cnt[show.ind], type="o")
-points(show.ind, nn.pred[show.ind], type="o", col="red")
-max.cnt <- max(d.test$cnt[show.ind])
-lines(show.ind, d.bike[row.names(d.test[show.ind,]),"weekday"]/6*max.cnt, col="blue")
+bike.daily <- with(bike.daily.raw,
+                    data.frame(instant=instant,
+                               date=dteday,
+                               season=factor(season, levels=c(1,2,3,4),
+                                             labels=c("spring","summer","fall","winter")),
+                               yr=factor(yr, levels=c(0,1), labels=c("2011","2012")),
+                               mnth=factor(mnth, levels=1:12,
+                                           labels=c("Jan","Feb","Mar","Apr",
+                                                    "May","Jun","Jul","Aug",
+                                                    "Sep","Oct","Nov","Dec")),
+                               holiday=factor(holiday, levels=levels.binary),
+                               weekday=factor(weekday, levels=0:6,
+                                              labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat")),
+                               workingday=factor(workingday, levels=levels.binary),
+                               weathersit=factor(weathersit, levels=c(1,2,3,4),
+                                                 labels=c("clear","misty","rainy","stormy")),
+                               atemp=atemp,
+                               temp=temp,
+                               hum=hum, 
+                               windspeed=windspeed,
+                               casual=casual,
+                               registered=registered,
+                               cnt=cnt))
