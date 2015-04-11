@@ -37,8 +37,11 @@ panel.hist <- function(x, ...) {
 }
 
 #scatterplot matrix
-pairs(bike.daily[,3:15], upper.panel=panel.cor, diag.panel=panel.hist)
-pairs(bike.daily[,3:15], col= bike.daily$season + 1)#, upper.panel=panel.cor, diag.panel=panel.hist)
+B<-bike.hourly.raw[sample(nrow(bike.hourly.raw),size=1000,replace=FALSE),]
+
+head(B)
+pairs(B[,c(3:14,17)], upper.panel=panel.cor, diag.panel=panel.hist)
+pairs(B[,3:15], col= bike.daily$season + 1)#, upper.panel=panel.cor, diag.panel=panel.hist)
 ##########################################################
 # Histogram of rentals count (daily)
 hist(bike.daily$cnt)
