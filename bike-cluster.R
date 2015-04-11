@@ -150,3 +150,49 @@ for (i in 1:4) {
 #         labels=2, lines=0)
 #pairs(B[1:4,], col = km1$cluster)
 #cluster.stats(B, fit1$cluster, fit2$cluster)
+
+
+Davies.Bouldin <- function(A, SS, m) {
+  # A  - the centres of the clusters
+  # SS - the within sum of squares
+  # m  - the sizes of the clusters
+  N <- nrow(A)   # number of clusters
+  # intercluster distance
+  S <- sqrt(SS/m)
+  # Get the distances between centres
+  M <- as.matrix(dist(A))
+  # Get the ratio of intercluster/centre.dist
+  R <- matrix(0, N, N)
+  for (i in 1:(N-1)) {
+    for (j in (i+1):N) {
+      R[i,j] <- (S[i] + S[j])/M[i,j]
+      R[j,i] <- R[i,j]
+    }
+  }
+  return(mean(apply(R, 1, max)))
+}
+
+pdf("figures/dbi.png", width=8, height=6)
+#
+oldpar <- par(mfrow = c(4, 4))
+par(mar = c(2, 1, 2, 1))
+errs <- rep(0, 10)
+DBI <- rep(0, 10)
+#
+set.seed(0)
+for (i in 2:15) {
+  KM <- kmeans(B, i, 15)
+  plot(B, col = KM$cluster, pch = KM$cluster,
+       main = paste(i," clusters"))
+  errs[i-1] <- sum(KM$withinss)
+  DBI[i-1] <- Davies.Bouldin(KM$centers, KM$withinss, KM$size)
+  print(KM$centers)
+}
+#
+plot(2:15, errs, main = "SS")
+lines(2:15, errs)
+#
+plot(2:15, DBI, main = "Davies-Bouldin")
+lines(2:15, DBI)
+par(oldpar)
+
