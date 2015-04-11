@@ -1,5 +1,7 @@
 source("bike-load.R")
 
+library(FactoMineR)
+
 #######################################################
 ### Data-preprocessing for PCA and ICA
 #######################################################
@@ -15,31 +17,39 @@ source("bike-load.R")
 # to recode a categorical variable "myVar" with N possible labels into
 # N binary columns called "myVarlabel1", ..., "myVarlabelN"
 
-bike.hourly.tmp <- bike.hourly
-first.day <- bike.hourly.tmp$datetime[1]
-last.day <- tail(bike.hourly.tmp$datetime, 1)
-bike.hourly.tmp$datetime <- as.numeric(difftime(bike.hourly.tmp$datetime, first.day, units="days")) / 
+bike.hourly.normalized <- bike.hourly.binarized
+first.day <- bike.hourly.normalized$datetime[1]
+last.day <- tail(bike.hourly.normalized$datetime, 1)
+bike.hourly.normalized$datetime <- as.numeric(difftime(bike.hourly.normalized$datetime, first.day, units="days")) / 
                                 as.numeric(difftime(last.day, first.day, units="days"))
-bike.hourly.tmp$hr <- factor(bike.hourly.tmp$hr, levels=0:23, labels=as.character(0:23))
-bike.hourly.prepared <- with(bike.hourly.tmp,
-                             cbind(data.frame(datetime=datetime),
-                                   model.matrix(~ season + 0), 
-                                   model.matrix(~ yr + 0),
-                                   model.matrix(~ mnth + 0),
-                                   model.matrix(~ hr + 0),
-                                   data.frame(holiday=as.numeric(levels(holiday))[holiday]),
-                                   model.matrix(~ weekday + 0),
-                                   data.frame(workingday=as.numeric(levels(workingday))[workingday]),
-                                   model.matrix(~ weathersit + 0),
-                                   data.frame(atemp=atemp,
-                                              temp=temp,
-                                              hum=hum,
-                                              windspeed=windspeed)))#,
-                                              #casual=casual,
-                                              #registered=registered,
-                                              #cnt=cnt)))
 
-pca <- prcomp(bike.hourly.prepared)
+# PCA
+pca <- prcomp(bike.hourly.normalized)
+
+# FAMD
+famd <- FAMD(bike.hourly)
+
+#######################################################
+# Calculate cumulative proportion of variance explained
+#######################################################
+# This function computes how many top PCA components are
+# necessary to explain a variance of at least 'min.variance'
+how.many.pcs.for.variance <- function (pca, n.components, min.variance)
+{
+  for (pc.index in 1:n.components) {
+    cumul <- sum(pca$sdev[1:pc.index]^2) / sum(pca$sdev^2)
+    if (cumul >= min.variance) {
+      return(pc.index)
+    }
+  }
+  return(-1)
+}
+
+# Call the above function
+min.var <- 0.8
+cat(paste("The first", how.many.pcs.for.variance(pca, ncol(bike.hourly.prepared), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
 
 # 
 # #######################################################

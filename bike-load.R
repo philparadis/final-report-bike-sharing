@@ -108,7 +108,7 @@ bike.daily.raw[1:5,]  # Print first 5 rows...
 tail(bike.daily.raw, 5)  # Print last 5 rows...
 
 #############################################
-### Data pre-processing
+# Data pre-processing
 #############################################
 
 levels.binary <- as.factor(c(0, 1))
@@ -163,3 +163,35 @@ bike.daily <- with(bike.daily.raw,
                                casual=casual,
                                registered=registered,
                                cnt=cnt))
+
+###############################################################
+# Data-preprocessing II
+#  - Convert categorical variables into binary variables
+#    (Split any categorical variable with more than 2 classes
+#     into multiple binary variables)
+#  - Also, we transform "hr" into a categorical variable first.
+###############################################################
+
+bike.hourly.tmp <- bike.hourly
+bike.hourly.tmp$hr <- factor(bike.hourly.tmp$hr, levels=0:23, labels=as.character(0:23))
+bike.hourly.binarized <- with(bike.hourly.tmp,
+                             cbind(data.frame(instant=instant,
+                                              date=date,
+                                              datetime=datetime),
+                                   model.matrix(~ season + 0), 
+                                   model.matrix(~ yr + 0),
+                                   model.matrix(~ mnth + 0),
+                                   model.matrix(~ hr + 0),
+                                   data.frame(holiday=as.numeric(levels(holiday))[holiday]),
+                                   model.matrix(~ weekday + 0),
+                                   data.frame(workingday=as.numeric(levels(workingday))[workingday]),
+                                   model.matrix(~ weathersit + 0),
+                                   data.frame(temp=temp,
+                                              atemp=atemp,
+                                              hum=hum,
+                                              windspeed=windspeed,
+                                              casual=casual,
+                                              registered=registered,
+                                              cnt=cnt)))
+
+

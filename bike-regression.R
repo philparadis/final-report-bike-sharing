@@ -1,5 +1,7 @@
 source("bike-load.R")
 
+library(neuralnet)
+
 ### Example of training a classifier for regression on "cnt"
 
 # For simplicity of using the classifier, remove column "instant", 
