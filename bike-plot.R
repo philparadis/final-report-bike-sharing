@@ -58,7 +58,6 @@ coplot(registered ~ cnt|weathersit,  data=bike.hourly)
 coplot(registered ~ cnt|weathersit, col=as.integer(bike.hourly$workingday), data=bike.hourly)
 
 coplot(casual ~ registered|cnt, data=bike.daily)
-
 coplot(casual ~ registered|mnth,col=bike.daily$season+1, data=bike.daily)
 coplot(casual ~ registered|season,col=as.numeric(bike.daily$season)+1, data=bike.daily)
 # histograms

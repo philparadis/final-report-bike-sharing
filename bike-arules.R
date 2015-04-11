@@ -60,7 +60,7 @@ quality(rules.h) <- cbind(quality(rules.h), hyperLift = hyperLift)
 inspect(head(sort(rules.h, by = "hyperLift"), 100))
 
 
-))) #error on purpose
+#))) #error on purpose
 
 # # C++ version
 # ibrary(Rcpp)

@@ -136,6 +136,15 @@ km1<-kmeans(B, num.clusters, 300)
 print.cluster.working.days(bike.daily, km1$cluster, num.clusters)
 print.cluster.avg.temp(bike.daily, km1$cluster, num.clusters)
 
+num.clusters <- 4
+km1<-kmeans(B, num.clusters, 300)
+print.cluster.working.days(bike.daily, km1$cluster, num.clusters)
+print.cluster.avg.temp(bike.daily, km1$cluster, num.clusters)
+par(mfrow=c(2, 2));
+for (i in 1:4) {
+  plot(0:23, colMeans(B[km1$cluster==i,]), main=paste0("Cluster ",i), type="o")
+}
+
 # plotcluster(B, km1$cluster, col=B.all$workingday)
 # clusplot(B, km1$cluster, color=TRUE, shade=TRUE, 
 #         labels=2, lines=0)
