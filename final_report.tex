@@ -74,34 +74,45 @@
 The dataset we used is the Bike Sharing Dataset from the UCI repository. Ac coding to the dataset description, ``this dataset contains the hourly and daily count of rental bikes between years 2011 and 2012 in Capital bikeshare system with the corresponding weather and seasonal information.''
  The summary of this dataset is as Table \ref{table:dataset} shows. More information of the dataset can be found at \url{http://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset}.
  
- \begin{table}[H]
- 	\label{table:dataset}
- 	\begin{tabular}{| l | p{11cm} |} \hline
- 		Number of instances: & 17389 (hours), 731 (days)\\
- 		Number of Attributes: & 16\\ \hline \hline
- 		\textbf{Attributes details:} &\\ \hline
- 		Attribute name  & description\\ \hline
- 		instant   & record index\\ \hline
- 		dteday    & date\\ \hline
- 		season  & season (1:springer, 2:summer, 3:fall, 4:winter)\\ \hline
- 		yr    &  year (0: 2011, 1:2012)\\ \hline
- 		mnth &   month ( 1 to 12)\\ \hline
- 		hr & hour (0 to 23) \\ \hline
- 		holiday   & weather day is holiday or not \\ \hline
- 		weekday   &  day of the week \\ \hline
- 		workingday   & 1: if day is neither weekend nor holiday; 0: otherwise.\\ \hline
- 		weathersit   & 1: Clear; 2: Mist; 3: Light Snow, Light Rain; 4: Heavy Rain, Ice Pallets, Snow + Fog;\\ \hline
- 		temp   & Normalized temperature in Celsius. \\ \hline
- 		atemp    & Normalized feeling temperature in Celsius. \\ \hline
- 		windspeed   & Normalized wind speed. \\ \hline
- 		casual   & count of casual users\\ \hline
- 		registered   & count of registered users\\ \hline
- 		cnt   & count of total rental bikes including both casual and registered \\ \hline
- 	\end{tabular}
- 	\caption{Bike sharing dataset summary}
- \end{table}
-\subsection{Data Visualization}
+\begin{table}[H]
+	\label{table:dataset}
+	\begin{tabular}{| l | p{11cm} |} \hline
+		Number of instances: & 17389 (hours), 731 (days)\\
+		Number of Attributes: & 16\\ \hline \hline
+		\textbf{Attributes details:} &\\ \hline
+		Attribute name  & description\\ \hline
+		instant   & record index\\ \hline
+		dteday    & date\\ \hline
+		season  & season (1:springer, 2:summer, 3:fall, 4:winter)\\ \hline
+		yr    &  year (0: 2011, 1:2012)\\ \hline
+		mnth &   month ( 1 to 12)\\ \hline
+		hr & hour (0 to 23) \\ \hline
+		holiday   & weather day is holiday or not \\ \hline
+		weekday   &  day of the week \\ \hline
+		workingday   & 1: if day is neither weekend nor holiday; 0: otherwise.\\ \hline
+		weathersit   & 1: Clear; 2: Mist; 3: Light Snow, Light Rain; 4: Heavy Rain, Ice Pallets, Snow + Fog;\\ \hline
+		temp   & Normalized temperature in Celsius. \\ \hline
+		atemp    & Normalized feeling temperature in Celsius. \\ \hline
+		windspeed   & Normalized wind speed. \\ \hline
+		casual   & count of casual users\\ \hline
+		registered   & count of registered users\\ \hline
+		cnt   & count of total rental bikes including both casual and registered \\ \hline
+	\end{tabular}
+	\caption{Bike sharing dataset summary}
+\end{table}
+ 
+ 
+\section{Data Visualization}
 \label{sec:visual}
+ 
+What relationships do we expect to see in the data?
+\begin{itemize}
+	\item Variation in bike rentals
+	\item Different traffic patterns on the weekends and on regular weekdays
+	\item Different traffic patterns on holidays versus non-holidays
+\end{itemize}
+ 
+\end{itemize}
 
 \begin{figure}[H]
 	\includegraphics[scale=0.6]{figures/scatterplot.png}

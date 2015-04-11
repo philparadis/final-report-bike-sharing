@@ -1,6 +1,6 @@
 default.work.dir <- "D:/stat5703w/bike-sharing"
 hedos.work.dir <- "/proj/stat5703w/bike-sharing"
-yue.work.dir <- "C:/Users/Yue/Desktop/master's/2015 Winter/Data mining/bike-sharing-2015-04-02/bike-sharing"
+yue.work.dir <- "C:/Users/Yue/Desktop/STAT5703/bike-sharing"
 
 switch(Sys.info()[['user']],
        # Working directory for user "hedos"
@@ -8,7 +8,7 @@ switch(Sys.info()[['user']],
        # Working directory for user "yue"
        Yue = { work.dir <- yue.work.dir },
        # If no matching username was found, use default working directory
-{ work.dir <- default.work.dir })
+       { work.dir <- default.work.dir })
 setwd(work.dir)
 
 # Create 'figures' and 'objects' subdirectories if they don't exist
@@ -51,7 +51,7 @@ library(randomForest)
 # Helper function to read and convert a date to POSIXlt type
 as.myDate <- function(date)
 {
-  strptime(paste(date, time), format="%m/%d/%y", tz="UTC")
+   strptime(paste(date, time), format="%m/%d/%y", tz="UTC")
 }
 setClass("myDate")
 setAs("character", "myDate", function (from) strptime(from, "%Y-%m-%d", tz="UTC"))
@@ -59,9 +59,34 @@ setAs("character", "myDate", function (from) strptime(from, "%Y-%m-%d", tz="UTC"
 ### Read the Bike Sharing Dataset
 hourly.filename <- "data/hour.csv"
 bike.hourly.raw <-read.table(hourly.filename, header=TRUE, sep=",",
+                        colClasses = c("integer",
+                                       "myDate",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "integer",
+                                       "numeric",
+                                       "numeric",
+                                       "numeric",
+                                       "numeric",
+                                       "integer",
+                                       "integer",
+                                       "integer"))
+
+### Validate that data was loaded correctly
+dim(bike.hourly.raw)  # Print dimensions
+bike.hourly.raw[1:5,]  # Print first 5 rows...
+tail(bike.hourly.raw, 5)  # Print last 5 rows...
+
+### Read the Bike Sharing Dataset
+daily.filename <- "data/day.csv"
+bike.daily.raw <-read.table(daily.filename, header=TRUE, sep=",",
                              colClasses = c("integer",
                                             "myDate",
-                                            "integer",
                                             "integer",
                                             "integer",
                                             "integer",
@@ -78,37 +103,12 @@ bike.hourly.raw <-read.table(hourly.filename, header=TRUE, sep=",",
                                             "integer"))
 
 ### Validate that data was loaded correctly
-dim(bike.hourly.raw)  # Print dimensions
-bike.hourly.raw[1:5,]  # Print first 5 rows...
-tail(bike.hourly.raw, 5)  # Print last 5 rows...
-
-### Read the Bike Sharing Dataset
-daily.filename <- "data/day.csv"
-bike.daily.raw <-read.table(daily.filename, header=TRUE, sep=",",
-                            colClasses = c("integer",
-                                           "myDate",
-                                           "integer",
-                                           "integer",
-                                           "integer",
-                                           "integer",
-                                           "integer",
-                                           "integer",
-                                           "integer",
-                                           "numeric",
-                                           "numeric",
-                                           "numeric",
-                                           "numeric",
-                                           "integer",
-                                           "integer",
-                                           "integer"))
-
-### Validate that data was loaded correctly
 dim(bike.daily.raw)  # Print dimensions
 bike.daily.raw[1:5,]  # Print first 5 rows...
 tail(bike.daily.raw, 5)  # Print last 5 rows...
 
 #############################################
-### Data pre-processing
+# Data pre-processing
 #############################################
 
 levels.binary <- as.factor(c(0, 1))
@@ -141,25 +141,57 @@ bike.hourly <- with(bike.hourly.raw,
 
 
 bike.daily <- with(bike.daily.raw,
-                   data.frame(instant=instant,
-                              date=dteday,
-                              season=factor(season, levels=c(1,2,3,4),
-                                            labels=c("spring","summer","fall","winter")),
-                              yr=factor(yr, levels=c(0,1), labels=c("2011","2012")),
-                              mnth=factor(mnth, levels=1:12,
-                                          labels=c("Jan","Feb","Mar","Apr",
-                                                   "May","Jun","Jul","Aug",
-                                                   "Sep","Oct","Nov","Dec")),
-                              holiday=factor(holiday, levels=levels.binary),
-                              weekday=factor(weekday, levels=0:6,
-                                             labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat")),
-                              workingday=factor(workingday, levels=levels.binary),
-                              weathersit=factor(weathersit, levels=c(1,2,3,4),
-                                                labels=c("clear","misty","rainy","stormy")),
-                              atemp=atemp,
-                              temp=temp,
-                              hum=hum, 
-                              windspeed=windspeed,
-                              casual=casual,
-                              registered=registered,
-                              cnt=cnt))
+                    data.frame(instant=instant,
+                               date=dteday,
+                               season=factor(season, levels=c(1,2,3,4),
+                                             labels=c("spring","summer","fall","winter")),
+                               yr=factor(yr, levels=c(0,1), labels=c("2011","2012")),
+                               mnth=factor(mnth, levels=1:12,
+                                           labels=c("Jan","Feb","Mar","Apr",
+                                                    "May","Jun","Jul","Aug",
+                                                    "Sep","Oct","Nov","Dec")),
+                               holiday=factor(holiday, levels=levels.binary),
+                               weekday=factor(weekday, levels=0:6,
+                                              labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat")),
+                               workingday=factor(workingday, levels=levels.binary),
+                               weathersit=factor(weathersit, levels=c(1,2,3,4),
+                                                 labels=c("clear","misty","rainy","stormy")),
+                               atemp=atemp,
+                               temp=temp,
+                               hum=hum, 
+                               windspeed=windspeed,
+                               casual=casual,
+                               registered=registered,
+                               cnt=cnt))
+
+###############################################################
+# Data-preprocessing II
+#  - Convert categorical variables into binary variables
+#    (Split any categorical variable with more than 2 classes
+#     into multiple binary variables)
+#  - Also, we transform "hr" into a categorical variable first.
+###############################################################
+
+bike.hourly.tmp <- bike.hourly
+bike.hourly.tmp$hr <- factor(bike.hourly.tmp$hr, levels=0:23, labels=as.character(0:23))
+bike.hourly.binarized <- with(bike.hourly.tmp,
+                             cbind(data.frame(instant=instant,
+                                              date=date,
+                                              datetime=datetime),
+                                   model.matrix(~ season + 0), 
+                                   model.matrix(~ yr + 0),
+                                   model.matrix(~ mnth + 0),
+                                   model.matrix(~ hr + 0),
+                                   data.frame(holiday=as.numeric(levels(holiday))[holiday]),
+                                   model.matrix(~ weekday + 0),
+                                   data.frame(workingday=as.numeric(levels(workingday))[workingday]),
+                                   model.matrix(~ weathersit + 0),
+                                   data.frame(temp=temp,
+                                              atemp=atemp,
+                                              hum=hum,
+                                              windspeed=windspeed,
+                                              casual=casual,
+                                              registered=registered,
+                                              cnt=cnt)))
+
+
