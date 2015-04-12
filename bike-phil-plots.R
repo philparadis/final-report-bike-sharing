@@ -56,6 +56,11 @@ axis(side=1, at=xlabs, labels=as.character(hourly.avg.by.hour$hr))
 # boxplots
 boxplot(50*atemp ~ mnth, data=bike.daily)
 
+# More plots of atemp
+plot(cnt ~ atemp, data=bike.hourly)
+hourly.avg.by.atemp <- aggregate(cnt~atemp, data=bike.hourly, mean)
+plot(cnt ~ atemp, data=hourly.avg.by.atemp)
+
 # Plot typical week
 plot(cnt ~ datetime, data=bike.hourly[1:(24*7),], type="o")
 

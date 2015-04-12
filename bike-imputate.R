@@ -90,4 +90,9 @@ par(oldpar)
 bad.rows <- bad.rows[bad.rows != 27 & bad.rows != 240]
 (bad.rows)
 
+datetime <- first.day + seq(0, (length(M.approx)-1)*3600, 3600)
+cnt <- as.vector(t(M.approx))
+bike.hourly.imputated <- data.frame(datetime=datetime, cnt=cnt)
+
+
 # We are left with 725 days
