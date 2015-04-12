@@ -1,3 +1,5 @@
+source("bike-load.R")
+
 ######## Start a local cluster with 2GB RAM
 library(h2o)
 if (!exists("localH2O")) {

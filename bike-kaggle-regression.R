@@ -397,10 +397,9 @@ run.h2o <- function ()
                             #activation = "TanhWithDropout",
                             activation = "RectifierWithDropout",
                             input_dropout_ratio = 0.15, # % of inputs dropout
-                            hidden_dropout_ratios = c(0.3,0.5,0.35), # % for nodes dropout
-                            #balance_classes = TRUE, 
-                            #hidden = c(50,50,50), # three layers of 50 nodes
-                            hidden = c(50,100,50),
+                            hidden_dropout_ratios = c(0.3,0.5), # % for nodes dropout
+                            balance_classes = TRUE, 
+                            hidden = c(100,200),
                             l1=1e-7,
                             l2=1e-10,
                             epochs = 5000, # max. no. of epochs
