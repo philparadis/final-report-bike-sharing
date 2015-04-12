@@ -115,8 +115,22 @@ What relationships do we expect to see in the data?
 	\item No idea about effects of humidity
 	\item Variation in bike rentals based on wind speed
 \end{itemize}
- 
+
+What kind of relationships do we expect to see in the data?
+\begin{itemize}
+	\item On regular weekdays, spike in traffic during morning and afternoon rush hours
+	\item Typically, higher bike rental volumes during the day and lower during the night
+	\item In other words, highly non-linear relationship between bike rentals and datetime
+	\item Roughly linear variation between bike rentals and temperature (although very high summer temperatures could lead to reduced bike rental volumes)
+	\item 
 \end{itemize}
+ 
+\subsection{Missing values}
+
+- What could possibly explains the missing values that we see?
+There is clearly a pattern in the missing values. Most of those happen at the same time at night.
+Also, the bike count values tend to change and be much smaller around missing values. Why is that?
+
 
 \begin{figure}[H]
 	\includegraphics[scale=0.6]{figures/scatterplot.png}
@@ -186,9 +200,19 @@ Data cleaning, smooth noisy data, identify or remove outliers, and resolve incon
 
 
 
-\subsection{Supervised Learning}
+\section{Supervised Learning}
 \label{supervised learning}
 
+\subsection{The two alternative problems on Kaggle}
+
+Unfortunately, the problem of modeling and predicting bike rental demand as stated on Kaggle as two different interpretations.
+
+\begin{enumerate}
+	\item Imputation of missing values.
+	\item Predictive modeling.
+\end{enumerate}
+
+The first problem of imputation is more popular on Kaggle and 
 
 \section{Experiments and Results}
 \label{sec:experiments-and-results}

@@ -8,7 +8,7 @@ library(neuralnet)
 # "dteday" as well as all categorical variables with more than 2
 # categories. Also remove "casual" and "registered" since their sum
 # gives "cnt".
-d.bike.easy <- d.bike[,-c(1,2,3,8, 10, 15,16)]
+d.bike.easy <- bike.hourly[,c("hr","weekday","weathersit","atemp","cnt")]
 
 train.index <- 1:(nrow(d.bike.easy) * 0.70)
 d.train <- d.bike.easy[train.index, ]
@@ -20,6 +20,15 @@ rf.pred <- predict(rf.fit, d.test)
 # Compute RMSE
 rf.rmse <- sqrt(mean((rf.pred - d.test$cnt)^2))
 cat(paste0("RMSE = ", rf.rmse, "\n"))
+
+# Compute RMSLE
+compute.rmsle <- function(pred, actual)
+{
+  sqrt(mean((log(pred+1)-log(actual+1))^2))
+}
+rf.rmsle <- compute.rmsle(rf.pred, d.test$cnt)
+cat(paste0("RMSLE = ", rf.rmsle, "\n"))
+
 
 # Plot first 100 points in test dataset and compare with predictions
 show.ind <- 1:100
