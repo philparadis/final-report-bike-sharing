@@ -90,9 +90,68 @@ par(oldpar)
 bad.rows <- bad.rows[bad.rows != 27 & bad.rows != 240]
 (bad.rows)
 
-datetime <- first.day + seq(0, (length(M.approx)-1)*3600, 3600)
-cnt <- as.vector(t(M.approx))
-bike.hourly.imputated <- data.frame(datetime=datetime, cnt=cnt)
+datetime.imputated <- first.day + seq(0, (length(M.approx)-1)*3600, 3600)
+cnt.imputated <- as.vector(t(M.approx))
 
+
+# Can we imputate all the other features?
+
+first.day <- bike.hourly$datetime[1]
+
+difftime(bike.hourly$date, first.day, units="days")+1
+
+
+# create a new data.frame that will contain 24 columns indicating the "cnt"
+# each row indicate a day
+
+newFeaturesMatrix <- c()
+features.to.imputate <- c("atemp", "temp", "hum", "windspeed", "casual", "registered")
+for (feature in names(bike.hourly[,features.to.imputate])) {
+  hr.names <- paste0("hr",0:23)
+  TMP <- c()
+  for (date in bike.daily$date) {
+    results <- bike.hourly[bike.hourly[,2] == date, c("hr",feature)]
+    counts <- rep(NA, 24)
+    counts[match(results[,1],0:23)] <- 0
+    counts[!is.na(counts)] <- results[,2]
+    names(counts) <- hr.names
+    TMP <- rbind(TMP, data.frame(as.list(counts)))
+  }
+  C <- as.vector(t(TMP)) # Write as a column
+  D <- na.approx(C)
+  newFeaturesMatrix <- cbind(newFeaturesMatrix, D)
+}
+colnames(newFeaturesMatrix) <- features.to.imputate
+
+# Imputate season, yr, mnth, hr, weekday from "datetime.imputated"
+season=factor(season, levels=c(1,2,3,4),
+              labels=c("spring","summer","fall","winter")),
+yr=factor(yr, levels=c(0,1), labels=c("2011","2012")),
+mnth=factor(mnth, levels=1:12,
+            labels=c("Jan","Feb","Mar","Apr",
+                     "May","Jun","Jul","Aug",
+                     "Sep","Oct","Nov","Dec")),
+holiday=factor(holiday, levels=levels.binary),
+weekday=factor(weekday, levels=0:6,
+               labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat")),
+workingday=factor(workingday, levels=levels.binary),
+weathersit=factor(weathersit, levels=c(1,2,3,4),
+                  labels=c("clear","misty","rainy","stormy")),
+atemp=atemp,
+
+season.imputated <- 
+yr.imputated <- factor(as.POSIXlt(datetime.imputated)$year+1900-2011, levels=c(0,1),
+                       labels=c("2011","2012"))
+mnth.imputated <- factor(as.POSIXlt(datetime.imputated)$month+1,
+                         levels=1:12,
+                         labels=c("Jan","Feb","Mar","Apr",
+                                  "May","Jun","Jul","Aug",
+                                  "Sep","Oct","Nov","Dec"))
+hr.imputated <- factor(as.POSIXlt(datetime.imputated)$hour)
+weekday.imputated <- factor(as.POSIXlt(datetime.imputated)$wday, levels=0:6,
+                            labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat"))
+
+bike.hourly.imputated <- data.frame(datetime=datetime.imputated,
+                                    cnt=cnt.imputated)
 
 # We are left with 725 days

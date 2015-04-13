@@ -52,7 +52,13 @@ axis(side=1, at=xlabs, labels=as.character(hourly.avg.by.hour$hr))
 # more barplot
 #barplot(table(daily.avg.by.season[,c("season","temp","hum","casual","registered")])
 
-        
+plot(cnt ~ hum, data=bike.hourly)
+hourly.avg.by.hum <- aggregate(cnt~hum, data=bike.hourly, mean)
+plot(cnt ~ hum, data=hourly.avg.by.hum)
+plot(cnt ~ abs(hum-0.2), data=hourly.avg.by.hum)
+plot(hum ~ cnt, data=hourly.avg.by.hum)
+plot(abs(hum-0.2) ~ cnt, data=hourly.avg.by.hum)
+
 # boxplots
 boxplot(50*atemp ~ mnth, data=bike.daily)
 
@@ -60,6 +66,7 @@ boxplot(50*atemp ~ mnth, data=bike.daily)
 plot(cnt ~ atemp, data=bike.hourly)
 hourly.avg.by.atemp <- aggregate(cnt~atemp, data=bike.hourly, mean)
 plot(cnt ~ atemp, data=hourly.avg.by.atemp)
+plot(cnt ~ abs(atemp-0.7), data=hourly.avg.by.atemp)
 
 # Plot typical week
 plot(cnt ~ datetime, data=bike.hourly[1:(24*7),], type="o")
