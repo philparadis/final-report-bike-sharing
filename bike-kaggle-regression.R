@@ -1,5 +1,6 @@
 if (!exists("bike.hourly"))
   source("bike-load.R")
+source("bike-helper.R")
 
 library(randomForest)
 library(nnet)
@@ -191,7 +192,7 @@ run.nnet.cas.reg <- function ()
 {
   ### TRAIN NEURAL NETWORKS
   
-  bike.transformed <- bike.hourly
+  bike.transformed <- bike.hi
   # Transform some featureshe testing set.
   bike.transformed$atemp <- abs(bike.transformed$atemp - 0.7)
   # Transform some featureshe testing set.\
@@ -205,10 +206,10 @@ run.nnet.cas.reg <- function ()
   # CASUAL
   # Select features
   features <- c("yr","mnth","hr","holiday","weekday","weathersit","atemp","hum","casual")
-  is.training.day <- as.POSIXlt(bike.hourly$date)$mday <= 19
+  is.training.day <- as.POSIXlt(bike.hi$date)$mday <= 19
   train <- bike.transformed[is.training.day, features]
   test <- bike.transformed[!is.training.day, features]
-  actual <- bike.transformed[!is.training.day, "cnt"]
+  actual.cnt <- bike.transformed[!is.training.day, "cnt"]
   
   # Scale 'cnt' between 0-1
   scale <- max(train$casual)
@@ -218,7 +219,7 @@ run.nnet.cas.reg <- function ()
               decay=0.001,
               MaxNWts=50000,
               size=40,
-              maxit=500)
+              maxit=1000)
   pred <- predict(fit, test)
   
   # Scale back 'casual'
@@ -230,7 +231,7 @@ run.nnet.cas.reg <- function ()
   # REGISTERED
   # Select features
   features <- c("yr","mnth","hr","holiday","weekday","weathersit","atemp","hum","registered")
-  is.training.day <- as.POSIXlt(bike.hourly$date)$mday <= 19
+  is.training.day <- as.POSIXlt(bike.hi$date)$mday <= 19
   train <- bike.transformed[is.training.day, features]
   test <- bike.transformed[!is.training.day, features]
   
@@ -242,7 +243,7 @@ run.nnet.cas.reg <- function ()
               decay=0.001,
               MaxNWts=50000,
               size=40,
-              maxit=500)
+              maxit=1000)
   pred <- predict(fit, test)
   
   # Scale back 'registered'
@@ -256,10 +257,25 @@ run.nnet.cas.reg <- function ()
   ### PLOT PREDICTIONS AGAINST ACTUAL DATA
   oldpar <- par(mfrow=c(2,1), mar=c(2.1,4.1,2,2.1))
   # Plot 5 days
-  begin <- 11*24
+  begin <- 11*24+1
   end <- 17*24
+  plot.cnt(begin, end, actual)
+  plot.cnt(begin, end, data.frame(cnt=pred), add=TRUE, col="red")
+  begin <- 250*24+1
+  end <- 256*24
+  plot.cnt(begin, end, actual)
+  plot.cnt(begin, end, data.frame(cnt=pred), add=TRUE, col="red")
+  
+  plot.cnt.dates("2011-11-22", "2011-11-27",
+                  cbind(bike.hi[!is.training.day, c("date","weekday")],
+                        data.frame(cnt=actual.cnt)))
+  plot.cnt.dates("2011-11-22", "2011-11-27",
+                 cbind(bike.hi[!is.training.day, c("date","weekday")],
+                       data.frame(cnt=pred)),
+                 add=TRUE, col="red")
+  
   show.ind <- begin:end
-  plot(show.ind, actual$cnt[show.ind], type="o",
+  plot(show.ind, actual.cnt[show.ind], type="o",
        main=paste0("Plotting ", kaggle.testing[begin,"date"], " (",
                    kaggle.testing[begin,"weekday"], ") to ", kaggle.testing[end,"date"], " (",
                    kaggle.testing[end, "weekday"], ")"))
@@ -267,7 +283,7 @@ run.nnet.cas.reg <- function ()
   begin <- 250*24
   end <- 256*24
   show.ind <- begin:end
-  plot(show.ind, actual$cnt[show.ind], type="o",
+  plot(show.ind, actual.cnt[show.ind], type="o",
        main=paste0("Plotting ", kaggle.testing[begin,"date"], " (",
                    kaggle.testing[begin,"weekday"], ") to ", kaggle.testing[end,"date"], " (",
                    kaggle.testing[end, "weekday"], ")"))
@@ -277,9 +293,12 @@ run.nnet.cas.reg <- function ()
   ### COMPUTE ERROR
   # Compute RMSE and RMSLE
   rf.rmse <- compute.rmse(pred, actual$cnt)
+  rf.rmse <- compute.rmse(pred, actual$cnt)
   rf.rmsle <- compute.rmsle(pred, actual$cnt)
   cat(paste0("RMSE = ", rf.rmse, "\n"))
   cat(paste0("RMSLE = ", rf.rmsle, "\n"))
+  
+  # Best score: 0.472
 }
 
 run.nnet.aug <- function ()
