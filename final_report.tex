@@ -720,6 +720,23 @@ atempdiff <- abs(atemp - PEAKTEMP)
 \end{verbatim}
 Then, the relationship between \texttt{atemptdiff} and \texttt{cnt} is roughly linear as we can see from OTHERGRAPH.
 
+IDEM with \texttt{hum}, except the ``ideal humidity'' is at around 0.2.
+
+\section{Data Imputation}
+
+We observed that some rows are missing in the hourly Bike Sharing datasets. In total, 165 rows are missing, which is almost 7 days worth of data. We decided that it would be wise to impute the missing data, since it could help build a better regression model. Moreover, having no missing data make the R programming significantly easier since the dataset structure would become more regular.
+
+We decided to use the \texttt{zoo} package to handle data imputation. The numeric variables were imputed using linear interpolation. We estimated that this was sufficient for most variables such as temperature, humidity and windspeed. However, for \texttt{casual}, \texttt{registered} and \texttt{cnt}, this did not always work. In most cases, only 1 or 2 observations were missing in a 24-hour period, in which case the linear interpolation was appropriate. However, there are 8 days with a large number of missing observations (between 6 and 23 missing observations per 24-hour period). We decided to investigate visualize the results of our imputation method for those days (see Figure~\ref{fig:badrows}).
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.98\textwidth]{figures/badrows.pdf}
+	\caption{Imputation of missing observations for the 8 days with the highest number of missing observations. The {\textbf{\color{black}black}} curve represents the actual values of \texttt{cnt} from the dataset. The {\textbf{\color{red}red}} curve are the observations that were imputed using linear interpolation. The {\textbf{\color{green}green}} curve represents the average value of \texttt{cnt} at the same hour on the same day of the week over the same month (the {\textbf{\color{green}green}} curve therefore provides a rough idea of what a typical day looks like and helps us decide if the imputation is acceptable or not).}
+	label{fig:badrows}
+\end{figure}
+As you can see, in most cases, linear interpolation does a poor job. Indeed, there are too many missing values and the pattern they cover is expected to be highly non-linear, except for the dates 2011-02-22 and 2011-08-28, in which the missing observations are all at night, where the pattern of bikes rental is flat.
+
+At this point, we decided to flag the 6 days above with poor imputation results as ``bad rows''. This allows us to exclude those days completely in the training phase of supervised learning.
+
 \subsection{The two alternative problems on Kaggle}
 
 Unfortunately, the problem of modeling and predicting bike rental demand as stated on Kaggle as two different interpretations.

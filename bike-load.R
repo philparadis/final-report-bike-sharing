@@ -1,18 +1,18 @@
-default.work.dir <- "D:/stat5703w/bike-sharing"
-hedos.work.dir <- "/proj/stat5703w/bike-sharing"
-yue.work.dir <- "C:\Users\Yue\Desktop\master's\2015 Winter\Data mining\bike-sharing"
-
-switch(Sys.info()[['user']],
-       # Working directory for user "hedos"
-       hedos = {  work.dir <- hedos.work.dir },
-       # Working directory for user "yue"
-       Yue = { work.dir <- yue.work.dir },
-       # If no matching username was found, use default working directory
-       { work.dir <- default.work.dir })
-setwd(work.dir)
-
-Create 'figures' and 'objects' subdirectories if they don't exist
-setwd(work.dir)
+# default.work.dir <- "D:/stat5703w/bike-sharing"
+# hedos.work.dir <- "/proj/stat5703w/bike-sharing"
+# yue.work.dir <- "C:/Users/Yue/Desktop/master's/2015 Winter/Data mining/bike-sharing"
+# 
+# switch(Sys.info()[['user']],
+#        # Working directory for user "hedos"
+#        hedos = {  work.dir <- hedos.work.dir },
+#        # Working directory for user "yue"
+#        Yue = { work.dir <- yue.work.dir },
+#        # If no matching username was found, use default working directory
+#        { work.dir <- default.work.dir })
+# setwd(work.dir)
+# 
+# #Create 'figures' and 'objects' subdirectories if they don't exist
+# setwd(work.dir)
 dir.create("figures", showWarnings = FALSE)
 dir.create("objects", showWarnings = FALSE)
 

@@ -117,3 +117,68 @@ bike.hfx$humdiff <- abs(bike.hfx$hum - 0.2)
 # tod <- rep(factor("work", levels=levels.typeofday), nrow(bike.hfx))
 # tod[ind.tod] <- factor("relax", levels=levels.typeofday)
 # bike.hfx$typeofday <- tod
+
+
+##########################
+# Auxiliary datasets
+##########################
+
+setClass("myDateMDY")
+setAs("character", "myDateMDY", function (from) as.POSIXct(strptime(from, "%m/%d/%Y", tz="UTC")))
+
+cta.filename <- "data/CTA-ridership-L-station-entries-daily-totals.csv"
+cta <- read.csv(cta.filename,
+                header = TRUE,,
+                colClasses = c("integer",
+                               "character",
+                               "myDateMDY",
+                               "factor",
+                               "integer"))
+
+good.stations <- c(40190, 40820, 40890, 40930, 41050, 41060, 41420)
+
+oldpar <- par(mfrow=c(2,1), mar=c(2,2,1,1))
+for (station in good.stations) {
+  station.cta <- cta[cta$station_id == station, ]
+  begin <- which(station.cta$date == as.POSIXct("2011-01-01", tz="UTC"))
+  end <- which(station.cta$date == as.POSIXct("2012-12-31", tz="UTC"))
+  if (length(begin) == 0 || length(end) == 0) {
+    cat("Can't find begin or end date...\n")
+  } else {
+    plot(casual ~ date, data=bike.daily)
+    plot(rides ~ date, data=station.cta[begin:end,],
+         main=paste(station.cta[1,"station_id"], station.cta[1,"stationname"]))
+    cat ("Press [enter] to continue")
+    line <- readline()
+    if (line == "q")
+      break
+  }
+}
+par(oldpar)
+
+station.40890 <- cta[cta$station_id == 40890,]
+station.40930 <- cta[cta$station_id == 40930,]
+station.41050 <- cta[cta$station_id == 41050,]
+station.41420 <- cta[cta$station_id == 41420,]
+
+plot(casual ~ date, data=bike.daily)
+
+begin <- which(station.40890$date == as.POSIXct("2011-01-01", tz="UTC"))
+end <- which(station.40890$date == as.POSIXct("2012-12-31", tz="UTC"))
+ind <- match(unique(station.40890[begin:end, "date"]), station.40890$date)
+sm <- loess.smooth(ind, station.40890[ind, "rides"], span=0.1, col="red", evaluation=length(ind))
+scale <- max(sm$y)
+sm$y <- sm$y/scale
+plot(ind, sm$y)
+
+bike.hfx$cta1 <- rep(sm$y, each=24)
+
+begin <- which(station.41420$date == as.POSIXct("2011-01-01", tz="UTC"))
+end <- which(station.41420$date == as.POSIXct("2012-12-31", tz="UTC"))
+ind <- match(unique(station.41420[begin:end, "date"]), station.41420$date)
+sm <- loess.smooth(ind, station.41420[ind, "rides"], span=0.1, col="red", evaluation=length(ind))
+scale <- max(sm$y)
+sm$y <- sm$y/scale
+plot(ind, sm$y)
+
+bike.hfx$cta2 <- rep(sm$y, each=24)

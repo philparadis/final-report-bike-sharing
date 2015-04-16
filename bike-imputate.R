@@ -43,8 +43,6 @@ imputate.bike.hourly.dataset <- function()
   (bad.rows <- which(apply(is.na(bike.24hourscnt), 1, sum) > 5))
   #Print all dates with more than 5 missing values
   bike.daily[bad.rows, "date"]
-  #which rows have more than 16 missing values
-  (bad.rows <- which(apply(is.na(bike.24hourscnt), 1, sum) > 16))
   # Count how many days have more than 1 NA value
   sum(apply(is.na(bike.24hourscnt), 1, sum) > 1)
   
@@ -63,6 +61,7 @@ imputate.bike.hourly.dataset <- function()
   
   hourly.avg.by.hr.mnt.workingday <- aggregate(.~hr+mnth+workingday, data=bike.hourly, mean)
   num.bad.rows <- length(bad.rows)
+  
   oldpar <- par(mfrow=c(num.bad.rows,3), mar=c(3,3,1,0), oma=c(0,0,0,0))
   for (row in bad.rows) {
     avg.counts <- c()
@@ -222,8 +221,11 @@ imputate.bike.hourly.dataset <- function()
   bike.hourly.imputated
 }
 
-if (!exists("bike.hourly.imputated")) {
-  bike.hourly.imputated <- imputate.bike.hourly.dataset()
+bike.hourly.imputated <- NULL
+bike.hi <- NULL
+
+if (!exists("bike.hourly.imputated") || is.null(bike.hourly.imputated)) {
+  bike.hourly.imputated <<- imputate.bike.hourly.dataset()
   # Shorter name for the above dataset
-  bike.hi <- bike.hourly.imputated
+  bike.hi <<- bike.hourly.imputated
 }
