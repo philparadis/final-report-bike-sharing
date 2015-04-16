@@ -626,6 +626,7 @@ A drawing on average counts on each cluster confirmed our finding:
 		\caption{Average counts plot on each cluster}
 	\end{figure}
 The following are the findings:
+
 \begin{enumerate}
 	\item cluster 1 and cluster 4 are having the pattern of workingdays. However, the counts in cluster 1 is lower than cluster 4 which indicates cluster 1 is representative for lower temp, and 4 for higher temp.
 	item counts in cluster 2 look like a mixture of working and non-working days with low counts. It is more likely in the winter.
@@ -683,20 +684,48 @@ To determine how many clusters we should choose for the k-means, we used Davies-
  	A better way to approach is separate data into day of events or not and train models separately on these two datasets. When a new data instance come, we first let the detector decide if it is event day, and pass it to correct model.
 	
 \section{Experimental Design}
-	\label{sec:experimental-design}
-	
-	
-	
-\subsection{Supervised Learning}
-	\label{supervised learning}
-	
-	
+\label{sec:experimental-design}
+
+
 \section{Experiments and Results}
-	\label{sec:experiments-and-results}
-	
-\section{Kaggle}
-	
-	
+\label{sec:experiments-and-results}
+
+\section{Supervised Learning}
+\label{supervised learning}
+
+The most obvious supervised learning task is to predict \texttt{cnt}, which is a regression problem, since \texttt{cnt} is a continuous variable. This has practical applications, as any company managing a bicycle sharing system might be interested in having a predictive models that helps ensure the supply of bicycles is always appropriate.
+
+\subsection{Kaggle Competition}
+
+The UCI Bike Sharing Dataset is featured as a Kaggle problem called \emph{Bike Sharing Demand}\footnote{\url{www.kaggle.com/c/bike-sharing-demand}}. We decided to participate in the competition, so that we could compare the performance of our method with others.
+
+The competition started on 28 May 2014 and ends on 29 May 2015. As of 13 April 2015, approximately 2900 people or team have participated in this competition, submitting more than 26000 entries.
+
+The Bike Sharing dataset provided by Kaggle is essentially the same as UCI's -- there are only minor differences in the format, such as the date and hour being specified by only one column named \texttt{datetime} and non-normalized units used for temperature, humidity and wind speed.
+
+The data must be split into a training set and a testing set, where the training set is comprised of the first 19 days of every month and the testing set is comprised of the 20th day until the end of the month.
+
+The objective of the competition is to train a classifier on the training data and to predict the testing data's \texttt{cnt} field with the lowest possible root-mean-squared-logarithmic error (RMSLE).
+
+Users can submit their predictions online and the RMSLE will be calculated
+
+Note that the testing data on Kaggle excludes the \texttt{cnt} field. As such, users must submit their predictions only to discover its RMSLE. However, the full data is present in the UCI's dataset and so, we can compute the RMSLE of our predictions by ourselves.
+
+\section{Data preparation}
+WILL MOST LIKELY NEED TO MOVE THIS SOMEWHERE ELSE AND JUST REFER TO IT HERE.
+
+The relationship between \texttt{atemp} and \texttt{cnt} is non-linear, as can be seen from GRAPHREF. However, there seems to be a peak temperature for bike rentals at around PEAKTEMP. Hence, it would make sense to define a new variable corresponding to the (absolute value) difference between the current temperature and this ``ideal temperature''. Let \texttt{atempdiff} be defined as:
+\begin{verbatim}
+atempdiff <- abs(atemp - PEAKTEMP)
+\end{verbatim}
+Then, the relationship between \texttt{atemptdiff} and \texttt{cnt} is roughly linear as we can see from OTHERGRAPH.
+
+\subsection{The two alternative problems on Kaggle}
+
+Unfortunately, the problem of modeling and predicting bike rental demand as stated on Kaggle as two different interpretations.
+
+
+
 \section{Conclusion and Further Work}
 	\label{sec:conclusion}
 	

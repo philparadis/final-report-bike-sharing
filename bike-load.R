@@ -124,7 +124,7 @@ bike.hourly <- with(bike.hourly.raw,
                                            labels=c("Jan","Feb","Mar","Apr",
                                                     "May","Jun","Jul","Aug",
                                                     "Sep","Oct","Nov","Dec")),
-                               hr=hr,
+                               hr=factor(hr, levels=0:23, labels=as.character(0:23)),
                                holiday=factor(holiday, levels=levels.binary),
                                weekday=factor(weekday, levels=0:6,
                                               labels=c("Sun","Mon","Tue","Wed","Thur","Fri","Sat")),
@@ -173,7 +173,6 @@ bike.daily <- with(bike.daily.raw,
 ###############################################################
 
 bike.hourly.tmp <- bike.hourly
-bike.hourly.tmp$hr <- factor(bike.hourly.tmp$hr, levels=0:23, labels=as.character(0:23))
 bike.hourly.binarized <- with(bike.hourly.tmp,
                              cbind(data.frame(instant=instant,
                                               date=date,
