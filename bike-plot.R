@@ -102,6 +102,7 @@ hourly.avg.by.workingday <- aggregate(.~workingday, data=bike.hourly, mean)
 hourly.avg.by.mnth <- aggregate(.~mnth, data=bike.hourly, mean)
 hourly.avg.by.season <- aggregate(.~season, data=bike.hourly, mean)
 hourly.avg.by.hour.and.season <- aggregate(.~hr+season, data=bike.hourly, mean)
+hourly.avg.by.hour.and.yr.and.workingday <- aggregate(.~hr+yr+workingday, data=bike.hourly, mean)
 daily.avg.by.workingday  <- aggregate(.~workingday, data=bike.daily, mean)
 daily.avg.by.mnth <- aggregate(.~mnth, data=bike.daily, mean)
 daily.avg.by.season <- aggregate(.~season, data=bike.daily, mean)
@@ -193,5 +194,24 @@ plot(cnt ~ temp, data=hourly.avg.by.temp)
 plot(cnt ~ abs(temp-0.7), data=hourly.avg.by.temp)
 
         
-        
+# plot casual with yrs
+h <- aggregate(.~hr+yr+workingday, data=bike.hourly, mean)
+coplot(casual ~ hr | yr, col=as.numeric(h$workingday), data=h, type="o")
+legend( x="topleft", 
+        legend=c("workingday=1","workingday=0" ),
+        col=c(2,1), 
+        pch=c(1,1) )
 
+# plot registered with yrs
+coplot(registered ~ hr | yr, col=as.numeric(h$workingday), data=h, type="o")
+legend( x="topleft", 
+        legend=c("workingday=1","workingday=0" ),
+        col=c(2,1), 
+        pch=c(1,1) )
+
+#plot cnt with yrs
+coplot(cnt~ hr | yr, col=as.numeric(h$workingday), data=h, type="o")
+legend( x="topleft", 
+        legend=c("workingday=1","workingday=0" ),
+        col=c(2,1), 
+        pch=c(1,1) )
