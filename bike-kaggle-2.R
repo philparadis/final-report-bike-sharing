@@ -3,6 +3,7 @@ source("bike-features-extract.R")
 
 library(randomForest)
 library(nnet)
+library(neuralnet)
 
 bike.results <- bike.hfx
 
@@ -13,24 +14,18 @@ bike.results <- bike.hfx
 
 is.training.day <- as.POSIXlt(bike.hfx$date)$mday <= 19
 
+# Find indices of all rows in the original dataset (i.e. exclude all new
+# rows from imputation)
+
+is.not.imputated.row <- bike.hfx$datetime %in% bike.hourly$datetime
+
 run.rf.hfx <- function ()
 {
   ### TRAIN NEURAL NETWORKS
-  
-  bike.transformed <- bike.hfx
-  # Transform some featureshe testing set.
-  bike.transformed$atemp <- abs(bike.transformed$atemp - 0.7)
-  # Transform some featureshe testing set.\
-  bike.transformed$hum <- abs(bike.transformed$hum - 0.2)
-  # Trabsfirn datetine to a numeric value between 0.0 and 1.0
-  first.day <- bike.transformed$datetime[1]
-  last.day <- tail(bike.transformed$datetime, 1)
-  bike.transformed$datetime <- as.numeric(difftime(bike.transformed$datetime, first.day, units="days")) / 
-    as.numeric(difftime(last.day, first.day, units="days"))
-  
+
   # CASUAL
   # Select features
-  features <- c("yr","mnth","hr","typeofday","weekday","weathersit","atemp","hum","casual")
+  features <- c("yr","mnth","hr","weekday","workingday","weathersit","atempdiff","humdiff","casual")
   is.training.day <- as.POSIXlt(bike.hfx$date)$mday <= 19
   train <- bike.transformed[is.training.day & bike.hfx$badrow == 0, features]
   test <- bike.transformed[!is.training.day, features]
@@ -51,7 +46,7 @@ run.rf.hfx <- function ()
   
   # REGISTERED
   # Select features
-  features <- c("yr","mnth","hr","typeofday","weekday","weathersit","atemp","hum","registered")
+  features <- c("yr","mnth","hr","weekday","workingday","weathersit","atempdiff","humdiff","registered")
   is.training.day <- as.POSIXlt(bike.hfx$date)$mday <= 19
   train <- bike.transformed[is.training.day & bike.hfx$badrow == 0, features]
   test <- bike.transformed[!is.training.day, features]
@@ -90,23 +85,12 @@ run.rf.hfx <- function ()
   cat(paste0("RMSLE = ", rf.rmsle, "\n"))
 }
 
-run.nnet.hfx <- function (h.size=25, maxit=500)
+run.nnet.hfx <- function (h.size=25, maxit=500, decay=0.001)
 {
   ### PARAMETERS
-  training.features <-  c("season","yr","mnth","hr","typeofday","weekday","weathersit","atemp","hum","windspeed")
+  training.features <-  c("season","yr","mnth","hr","weekday","workingday","weathersit","atempdiff","hum","windspeed")
   
   ### TRAIN NEURAL NETWORKS
-  
-  bike.transformed <- bike.hfx
-  # Transform some featureshe testing set.
-  bike.transformed$atemp <- abs(bike.transformed$atemp - 0.7)
-  # Transform some featureshe testing set.\
-  bike.transformed$hum <- abs(bike.transformed$hum - 0.2)
-  # Trabsfirn datetine to a numeric value between 0.0 and 1.0
-  first.day <- bike.transformed$datetime[1]
-  last.day <- tail(bike.transformed$datetime, 1)
-  bike.transformed$datetime <- as.numeric(difftime(bike.transformed$datetime, first.day, units="days")) / 
-    as.numeric(difftime(last.day, first.day, units="days"))
   
   # CASUAL
   # Select features
@@ -121,7 +105,7 @@ run.nnet.hfx <- function (h.size=25, maxit=500)
   train$casual <- train$casual/scale
   
   fit <- nnet(casual ~ ., data=train,
-              decay=0.001,
+              decay=decay,
               MaxNWts=50000,
               size=h.size,
               maxit=maxit)
@@ -184,14 +168,16 @@ run.nnet.hfx <- function (h.size=25, maxit=500)
   
   ### COMPUTE ERROR
   # Compute RMSE and RMSLE
-  rf.rmse <- compute.rmse(bike.results[!is.training.day, "pred"], actual$cnt)
-  rf.rmsle <- compute.rmsle(bike.results[!is.training.day, "pred"], actual$cnt)
+  rf.rmse <- compute.rmse(bike.results[!is.training.day & is.not.imputated.row, "pred"],
+                          bike.results[!is.training.day & is.not.imputated.row, "cnt"])
+  rf.rmsle <- compute.rmsle(as.integer(bike.results[!is.training.day & is.not.imputated.row, "pred"]),
+                            bike.results[!is.training.day & is.not.imputated.row, "cnt"])
   cat(paste0("RMSE = ", rf.rmse, "\n"))
   cat(paste0("RMSLE = ", rf.rmsle, "\n"))
   
   # Best score: 0.472
   # NEW best score after fixing "holidays" in feature extraction, removing
-  # bad rows, adding "typeofday" and multiplying the count for days around
+  # bad rows and multiplying the count for days around
   # christmas by half: 0.451144782190852
   
   bike.results <<- bike.results
@@ -201,8 +187,11 @@ run.nnet.hfx <- function (h.size=25, maxit=500)
 # RUN EXPERIMENT
 # TODO: Move this into its own file...
 
-params.h.size <- c(5, 10, 15, 20, 25, 30, 35, 40, 50, 65, 90)
-params.maxit <- c(100, 300, 1000, 2500, 5000)
+#params.h.size <- c(5, 10, 15, 20, 25, 30, 35, 40, 50, 65, 90)
+#params.maxit <- c(100, 300, 1000, 2500, 5000)
+params.h.size <- c(3,4,6,7,8,9,11,12,13,14,16,17,18,19)
+params.maxit <- c(100, 300, 1000)
+params.decay <- c(0.001, 
 
 results.log <- c()
 for (maxit in params.maxit) {
@@ -213,80 +202,49 @@ for (maxit in params.maxit) {
     res <- data.frame(datetime=Sys.time(), runtime=runtime,
                       seed=seed, h.size=h.size, maxit=maxit, rmsle=rmsle)
     results.log <- rbind(results.log, res)
-    write.csv(results.log, "results.log")
+    write.csv(results.log, "results2.log")
     write.csv(bike.results[!is.training.day, "pred"],
               paste0("pred_s", seed))
   }
 }
 
 
-run.nnet.hfx <- function ()
+run.neuralnet.hfx <- function (h.size=25, maxit=500, decay=0.001)
 {
   ### TRAIN NEURAL NETWORKS
   
-  bike.transformed <- bike.hfx
-  # Transform some featureshe testing set.
-  bike.transformed$atemp <- abs(bike.transformed$atemp - 0.7)
-  # Transform some featureshe testing set.\
-  bike.transformed$hum <- abs(bike.transformed$hum - 0.2)
-  # Trabsfirn datetine to a numeric value between 0.0 and 1.0
-  first.day <- bike.transformed$datetime[1]
-  last.day <- tail(bike.transformed$datetime, 1)
-  bike.transformed$datetime <- as.numeric(difftime(bike.transformed$datetime, first.day, units="days")) / 
-    as.numeric(difftime(last.day, first.day, units="days"))
-  
   # CASUAL
   # Select features
-  features <- c("season","yr","mnth","hr","typeofday","weekday","weathersit","atemp","hum","windspeed","casual")
-  is.training.day <- as.POSIXlt(bike.hfx$date)$mday <= 19
-  train <- bike.transformed[is.training.day & bike.hfx$badrow == 0, features]
-  test <- bike.transformed[!is.training.day, features]
-  actual.cnt <- bike.transformed[!is.training.day, "cnt"]
+  m <- data.frame(model.matrix( 
+    ~ season + yr + mnth + hr + weekday + workingday +
+      weathersit + atempdiff + humdiff + windspeed + casual,
+    data = bike.hfx
+  ))
+  n <- colnames(m)[2:(ncol(m)-1)]
+  f <- as.formula(paste('casual ~', paste(n[!n %in% 'cnt'], collapse = ' + ')))
   
-  # Scale 'cnt' between 0-1
+  is.training.day <- as.POSIXlt(bike.hfx.binarized$date)$mday <= 19
+  train <- m[is.training.day & bike.hfx.binarized$badrow == 0, -1]
+  test <- m[!is.training.day, -c(1, ncol(m))]
+
+  # Scale 'casual' between 0-1
   scale <- max(train$casual)
   train$casual <- train$casual/scale
   
-  ##############
-  train.h2o <- as.h2o(localH2O, train, key='data')
+  fit <- neuralnet(f,
+                   data=train,
+                   hidden=15,
+                   threshold=0.5,
+                   stepmax=50000,
+                   err.fct="sse",
+                   act.fct="logistic",
+                   linear.output=TRUE,
+                   lifesign="full",
+                   lifesign.step=500,
+                   startweights=NULL)
   
-  x <- 1:(ncol(train)-1)
-  y <- "casual"
+  pred <- compute(fit, test)$net.result
   
-  # Create a grid of parameters
-  input_dropout_ratio = 0.1
-  hidden_dropout_ratios = c(0.1, 0.1)
-  hidden_layers = c(100,200)
-  holdout_fraction = 0.2
-  l1_norm = 0
-  l2_norm = 1e-7
-  
-  model.grid <- h2o.deeplearning(x = x,  # column numbers for predictors
-                                 y = y,   # column number for label
-                                 data = train.h2o, # data in H2O format
-                                 classification = FALSE,
-                                 activation = "RectifierWithDropout",
-                                 input_dropout_ratio = input_dropout_ratio, # % of inputs dropout
-                                 hidden_dropout_ratios = hidden_dropout_ratios, # % for nodes dropout
-                                 hidden = hidden_layers,
-                                 holdout_fraction = holdout_fraction,
-                                 l1=l1_norm,
-                                 l2=l2_norm,
-                                 rate = 0.005,
-                                 epochs = 100) # max. no. of epochs
-  
-  # Pick the best model for the rest of the analysis
-  #model <- model.grid@model[[1]]
-  model <- model.grid
-  
-  ## Using the DNN model for predictions
-  test.h2o <- as.h2o(localH2O, test, key='data')
-  pred.h2o <- h2o.predict(model, test.h2o)
-  
-  ## Converting H2O format into data frame
-  pred <- as.data.frame(pred.h2o)
-  
-  ###############
   # Scale back 'casual'
   pred <- pred*scale
   # Sanitize pred: any negative value is set to zero
@@ -295,54 +253,36 @@ run.nnet.hfx <- function ()
   
   # REGISTERED
   # Select features
-  features <- c("season","yr","mnth","hr","typeofday","weekday","weathersit","atemp","hum","windspeed","registered")
-  train <- bike.transformed[is.training.day & bike.hfx$badrow == 0, features]
-  test <- bike.transformed[!is.training.day, features]
+  m <- data.frame(model.matrix( 
+    ~ season + yr + mnth + hr + weekday + workingday +
+      weathersit + atempdiff + humdiff + windspeed + registered,
+    data = bike.hfx
+  ))
+  n <- colnames(m)[2:(ncol(m)-1)]
+  f <- as.formula(paste('registered ~', paste(n[!n %in% 'cnt'], collapse = ' + ')))
   
-  # Scale 'cnt' between 0-1
+  is.training.day <- as.POSIXlt(bike.hfx.binarized$date)$mday <= 19
+  train <- m[is.training.day & bike.hfx.binarized$badrow == 0, -1]
+  test <- m[!is.training.day, -c(1, ncol(m))]
+  
+  # Scale 'registered' between 0-1
   scale <- max(train$registered)
   train$registered <- train$registered/scale
-#####################
-  train.h2o <- as.h2o(localH2O, train, key='data')
   
-  x <- 1:(ncol(train)-1)
-  y <- "registered"
+  fit <- neuralnet(f,
+                   data=train,
+                   hidden=15,
+                   threshold=0.5,
+                   stepmax=50000,
+                   err.fct="sse",
+                   act.fct="logistic",
+                   linear.output=TRUE,
+                   lifesign="full",
+                   lifesign.step=500,
+                   startweights=NULL)
   
-  # Create a grid of parameters
-  input_dropout_ratio = 0.1
-  hidden_dropout_ratios = c(0.1, 0.1)
-  hidden_layers = c(100,200)
-  holdout_fraction = 0.2
-  l1_norm = 0
-  l2_norm = 1e-7
+  pred <- compute(fit, test)$net.result
   
-  model.grid <- h2o.deeplearning(x = x,  # column numbers for predictors
-                                 y = y,   # column number for label
-                                 data = train.h2o, # data in H2O format
-                                 classification = FALSE,
-                                 activation = "RectifierWithDropout",
-                                 input_dropout_ratio = input_dropout_ratio, # % of inputs dropout
-                                 hidden_dropout_ratios = hidden_dropout_ratios, # % for nodes dropout
-                                 hidden = hidden_layers,
-                                 holdout_fraction = holdout_fraction,
-                                 l1=l1_norm,
-                                 l2=l2_norm,
-                                 rate = 0.005,
-                                 epochs = 100) # max. no. of epochs
-  
-  # Pick the best model for the rest of the analysis
-  # model <- model.grid@model[[1]]
-  model <- model.grid
-  
-  ## Using the DNN model for predictions
-  test.h2o <- as.h2o(localH2O, test, key='data')
-  pred.h2o <- h2o.predict(model, test.h2o)
-  
-  ## Converting H2O format into data frame
-  pred <- as.data.frame(pred.h2o)
-
-#####################
-
   # Scale back 'registered'
   pred <- pred*scale
   # Sanitize pred: any negative value is set to zero
@@ -377,13 +317,19 @@ run.nnet.hfx <- function ()
   
   ### COMPUTE ERROR
   # Compute RMSE and RMSLE
-  rf.rmse <- compute.rmse(bike.results[!is.training.day, "pred"], actual$cnt)
-  rf.rmse <- compute.rmse(bike.results[!is.training.day, "pred"], actual$cnt)
-  rf.rmsle <- compute.rmsle(bike.results[!is.training.day, "pred"], actual$cnt)
+  rf.rmse <- compute.rmse(bike.results[!is.training.day & is.not.imputated.row, "pred"],
+                          bike.results[!is.training.day & is.not.imputated.row, "cnt"])
+  rf.rmsle <- compute.rmsle(as.integer(bike.results[!is.training.day & is.not.imputated.row, "pred"]),
+                            bike.results[!is.training.day & is.not.imputated.row, "cnt"])
   cat(paste0("RMSE = ", rf.rmse, "\n"))
   cat(paste0("RMSLE = ", rf.rmsle, "\n"))
   
   # Best score: 0.472
+  # NEW best score after fixing "holidays" in feature extraction, removing
+  # bad rows and multiplying the count for days around
+  # christmas by half: 0.451144782190852
   
   bike.results <<- bike.results
+  rf.rmsle
 }
+

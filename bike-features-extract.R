@@ -73,11 +73,31 @@ for (date in list(date.tue, date.wed, date.thur1, date.thur2)) {
 
 mon.before.tue.indices <- bike.hfx$date == date.tue + as.difftime(-1, units="days")
 bike.hfx[mon.before.tue.indices,"holiday"] <- factor(1, levels=levels(bike.hfx[0,"holiday"]))
+bike.hfx[mon.before.tue.indices,"workingday"] <- factor(0, levels=levels(bike.hfx[0,"workingday"]))
 
 fri.after.thur.indices <- bike.hfx$date == date.thur1 + as.difftime(1, units="days")
 bike.hfx[fri.after.thur.indices,"holiday"] <- factor(1, levels=levels(bike.hfx[0,"holiday"]))
+bike.hfx[fri.after.thur.indices,"workingday"] <- factor(0, levels=levels(bike.hfx[0,"workingday"]))
 fri.after.thur.indices <- bike.hfx$date == date.thur2 + as.difftime(1, units="days")
 bike.hfx[fri.after.thur.indices,"holiday"] <- factor(1, levels=levels(bike.hfx[0,"holiday"]))
+bike.hfx[fri.after.thur.indices,"workingday"] <- factor(0, levels=levels(bike.hfx[0,"workingday"]))
+
+###################################################################
+# TRANSFORM 'atemp' AND 'hum' INTO DIFFERENCE
+# FROM "IDEAL VALUES" (INDUCING LINEAR RELATIONSHIP WITH 'cnt')
+###################################################################
+
+# Transform the temperature into a "distance from ideal temperature"
+bike.hfx$atempdiff <- abs(bike.hfx$atemp - 0.7)
+# Transform the humidity into a "distance from ideal humidity"
+bike.hfx$humdiff <- abs(bike.hfx$hum - 0.2)
+
+# Transform datetime to a numeric value between 0.0 and 1.0
+# first.day <- bike.transformed$datetime[1]
+# last.day <- tail(bike.transformed$datetime, 1)
+# bike.transformed$datetime <- as.numeric(difftime(bike.transformed$datetime, first.day, units="days")) / 
+#   as.numeric(difftime(last.day, first.day, units="days"))
+
 
 ##########################
 # Simplify type of day
@@ -91,9 +111,9 @@ bike.hfx[fri.after.thur.indices,"holiday"] <- factor(1, levels=levels(bike.hfx[0
 # of "weekday" and "holiday" when is a work day versus a rest day, replacing
 # "holiday" with "typeofday" should help train classifiers more efficiently.
 
-levels.typeofday = levels(as.factor(c("relax", "work")))
-
-ind.tod <- bike.hfx$weekday == "Sat" | bike.hfx$weekday == "Sun" | bike.hfx$holiday == 1
-tod <- rep(factor("work", levels=levels.typeofday), nrow(bike.hfx))
-tod[ind.tod] <- factor("relax", levels=levels.typeofday)
-bike.hfx$typeofday <- tod
+# levels.typeofday = levels(as.factor(c("relax", "work")))
+# 
+# ind.tod <- bike.hfx$weekday == "Sat" | bike.hfx$weekday == "Sun" | bike.hfx$holiday == 1
+# tod <- rep(factor("work", levels=levels.typeofday), nrow(bike.hfx))
+# tod[ind.tod] <- factor("relax", levels=levels.typeofday)
+# bike.hfx$typeofday <- tod
