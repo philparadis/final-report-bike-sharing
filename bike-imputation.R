@@ -64,7 +64,7 @@ imputate.bike.hourly.dataset <- function()
   
   pdf("figures/badrows.pdf", width=8, height=6)
   num.bad.rows <- length(bad.rows)
-  oldpar <- par(mfrow=c(num.bad.rows/2,2), mar=c(3.5,5,3,2), oma=c(0,0,0,0))
+  oldpar <- par(mfrow=c(num.bad.rows/2,2), mar=c(4,4,2,2), oma=c(0,0,0,0))
   for (row in bad.rows) {
     avg.counts <- c()
     for (rel in c(-1,0,1)) {
@@ -90,7 +90,8 @@ imputate.bike.hourly.dataset <- function()
     }
     plot(daterange.3days, avg.counts, type="o", col="green",
          main=main,
-         ylab="cnt", xlab="datetime")
+         ylab="cnt", xlab="")
+    title(xlab="datetime", line=2)
     lines(daterange.mid, as.vector(t(M.approx[c(row),])),type='o',col="red")
     lines(daterange.3days, as.vector(t(M[c(row-1,row,row+1),])),type='o')
 #     plot(1:72, avg.counts, type="o", col="green")
@@ -237,11 +238,9 @@ imputate.bike.hourly.dataset <- function()
   bike.hourly.imputated
 }
 
-bike.hourly.imputated <- NULL
-bike.hi <- NULL
-
-if (!exists("bike.hourly.imputated") || is.null(bike.hourly.imputated)) {
+if (!exists("bike.hourly.imputated")) {
   bike.hourly.imputated <<- imputate.bike.hourly.dataset()
   # Shorter name for the above dataset
   bike.hi <<- bike.hourly.imputated
 }
+

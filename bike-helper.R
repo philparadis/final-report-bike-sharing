@@ -2,7 +2,7 @@
 # This file defines some helper functions related to the Capital Bike Sharing
 # dataset, such as plotting "cnt" graphs and compute error measures.
 
-source("bike-imputate.R")
+source("bike-imputation.R")
 
 
 # Define some helper functions to calculate errors

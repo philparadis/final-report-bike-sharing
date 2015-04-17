@@ -1,4 +1,4 @@
-source("bike-imputate.R")
+source("bike-imputation.R")
 
 augment.bike.hourly <- function (add.prev.hours)
 {
