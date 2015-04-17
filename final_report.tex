@@ -353,76 +353,78 @@
 	 	\begin{minipage}{.5\textwidth}
 	 		\centering
 	 		\includegraphics[width=\linewidth]{figures/registered_cnt_season.png}
-	 		\caption{registered-cnt$|$season}
+	 		\caption{Registered-cnt$|$season}
 	 		\label{fig:registered-cnt}
 	 	\end{minipage}%
 	 	\begin{minipage}{.5\textwidth}
 	 		\centering
 	 		\includegraphics[width=\linewidth]{figures/casual_cnt_season.png}
-	 		\caption{casual-cnt$|$season}
+	 		\caption{Casual-cnt$|$season}
 	 		\label{fig:casual-cnt}
 	 	\end{minipage}
 	 \end{figure}
 	 From Figure \ref{fig:registered-cnt} and Figure \ref{fig:casual-cnt}, we can see that registered users and casual users behave differently on workingdays and non-workingdays. More registered users rent bike on workingdays, and more casual users rent bike on non-working days.
+	 A coplot on registered against casual conditioned on the month can explain this difference even better:
 	 	\begin{figure}[H]
 	 		\centering
 	 		\includegraphics[scale=.9]{figures/coplot_registered_casual_mnth.png}
 	 		\caption{Coplot of registered-casual$|$ mnth colored on workingday}
+	 		\label{fig:registered_casual}
 	 	\end{figure}
-	In the above graph, on the non-working day, the registered and casual almost have a linear correlation(black dots). However, on workingday, there is no strong linear correlation between the two (red dots). This suggests us that we should build two separated model for workingday and non-workingday.
+	In Figure \ref{fig:registered_casual}, registered and casual almost have a linear correlation on the non-workingday (black dots). But there is no strong linear correlation between the two on workingdays(red dots). This suggests us that building separated models for registered and casual on workingday and non-workingday can improve the prediction of the total counts .
 	
-	To find more, we plotted casual and registered for everyday as appendix A shows. Here are some interesting findings for casual users:
+	To further explore the difference between casual and registered users, we plotted hourly bike rental counts for casual users and for registered users in a daily basis for the whole dataset. Here are some interesting findings:
 	\begin{enumerate}
-		\item In winter, less casual users go out on weekdays, but similar amount of users go out during weekend in winter and summer.
+		\item In winter, less casual users go out biking on weekdays. But the amount of casual users renting bikes on weekends doesn't reduce much from the summer to the winter. 
 	
 		 \begin{figure}[H]
 		 	\centering
 		 	\begin{minipage}{.5\textwidth}
 		 		\centering
 		 		\includegraphics[width=\linewidth]{figures/casual_typical_winter.png}
-		 		\caption{casual typical winter}
+		 		\caption{Winter - casual users}
 		 	\end{minipage}%
 		 	\begin{minipage}{.5\textwidth}
 		 		\centering
 		 		\includegraphics[width=\linewidth]{figures/casual_typical_summer.png}
-		 		\caption{casual typical summer}
+		 		\caption{Summer - casual users}
 		 		%\label{fig:casual-cnt}
 		 	\end{minipage}
 		 \end{figure}
-	 \item The week when school started is atypical than usually summer weeks. This indicates that a large percent of casual users might be student.
+	 \item Compare to the usual summer weeks, casual users' bike rentals are very low in the week when school starts. This indicates that a large percentage of casual users are students.
 	 
 	 	 \begin{figure}[H]
 	 	 	\centering
 	 	 	\begin{minipage}{.5\textwidth}
 	 	 		\centering
 	 	 		\includegraphics[width=\linewidth]{figures/casual_week_before_school.png}
-	 	 		\caption{casual week before school}
+	 	 		\caption{The week before school starts - casual users}
 	 	 	\end{minipage}%
 	 	 	\begin{minipage}{.5\textwidth}
 	 	 		\centering
 	 	 		\includegraphics[width=\linewidth]{figures/casual_school_start.png}
-	 	 		\caption{casual school start}
+	 	 		\caption{The week when school starts - casual users}
 	 	 		%\label{fig:casual-cnt}
 	 	 	\end{minipage}
 	 	 \end{figure}
 
-	\item Christmas is atypical than regular winter weeks.
+	\item Christmas is an atypical week for casual users' bike rentals. 
 		 \begin{figure}[H]
 		 	\centering
 		 	\begin{minipage}{.5\textwidth}
 		 		\centering
 		 		\includegraphics[width=\linewidth]{figures/casual_chritmas_2011.png}
-		 		\caption{casual chritmas 2011}
+		 		\caption{Christmas 2011- casual users}
 		 	\end{minipage}%
 		 	\begin{minipage}{.5\textwidth}
 		 		\centering
 		 		\includegraphics[width=\linewidth]{figures/casual_christmas.png}
-		 		\caption{casual christmas 2012}
+		 		\caption{Christmas 2012- casual users}
 		 		%\label{fig:casual-cnt}
 		 	\end{minipage}
 		 \end{figure}
 		 
-		 \item Typical winter and summer for registered users don't change that much, except more registered users go bike during the weekends in summer.
+		 \item The bike rentals for registered users don't change that much from the summer to the winter on weekdays. However, more registered users go bike on weekends during the summer.
 		 	\begin{figure}[H]
 		 		\centering
 		 		\begin{minipage}{.5\textwidth}
@@ -438,7 +440,7 @@
 		 		\end{minipage}
 		 	\end{figure}
 		 	
-		\item Christmas is atypical than regular winter weeks.
+		\item Christmas is an atypical week for registered users' bike rentals. 
 			 \begin{figure}[H]
 			 	\centering
 			 	\begin{minipage}{.5\textwidth}
@@ -455,21 +457,19 @@
 			 \end{figure}
 		\end{enumerate}
 		
-	\paragraph*{Preliminary Conclusion.}
-	Based on the above observations, we identify that temp/atemp, yr, season/mnth, and workingday as the main predictors for the  daily dataset, and we will investigate the relation of hr with hourly dataset.
-	
-	In short we have identified strong correlation between counts and with these predictors: 1. Temperature 2. Hour of the Day 3. Working Day 4. Month of the Year. 
+	\paragraph*{Preliminary Conclusion.}	
+	In short we have identified strong correlation between counts and these predictors: 1. Temperature 2. Hour of the Day 3. Working Day 4. Month of the Year. 
 	
 	\subsection{Association Rule Mining}	
 	To investigate more about the dataset, we did an association rule mining. The bike sharing dataset contains a mixture of categorical and numeric attributes and therefore need some preparation before using apriori algorithm on it. Here are the steps for our experiment in association rule mining:
     \begin{enumerate}
-    	\item We fist removed the interrelate features: instant, dteday.
-    	\item Then we mapped the seven remaining continuous attributes (temp, atemp, hum, windspeed, registered, casual, and cnt) to ordinal attributes by building suitable categories.
-    	\item Coerce the data set to transactions as a binary incidence matrix.
-    	\item run Apriori algorithm with support = 0.01, confidence = 0.3.
+    	\item We fist removed the unrelated features: instant, dteday.
+    	\item We then mapped the seven remaining continuous attributes (temp, atemp, hum, windspeed, registered, casual, and cnt) to ordinal attributes by building suitable categories.
+    	\item Next, we coerced the data set to transactions (a binary incidence matrix).
+    	\item Finally, we ran Apriori algorithm with support = 0.01, confidence = 0.3.
     \end{enumerate}
 	
-	Ming the rules , and sort the rules by lift with "cnt=high" in the rhs. we obtained the following top 5 rules: \color{blue}
+	After the rule mining, we sorted the rules by lift with "cnt=high" in the right hand side. Here are the top 5 rules: \color{blue}
 	\begin{verbatim}
 	   lhs                   rhs           support confidence     lift
 	   1  {weekday=Sat,                                                  
@@ -483,9 +483,9 @@
 	   5  {mnth=Jun,                                                     
 	   registered=high}  => {cnt=high} 0.03009576          1 3.768041
 	\end{verbatim} \color{black}
-    The first rule tells us that when it is Saturday and casual counts is high, there will be a large chance that cnt is high.
+    The first rule tells us that when it is Saturday and bike rentals from casual users are high, there will be a large chance that total bike rentals are high.
     
-    sort the rules by lift with "registered=high" in the rhs. we obtained the following top 5 rules: \color{blue}
+    We also sorted the rules by lift with "registered=high" on the right hand side. The following are the top 5 rules: \color{blue}
 	\begin{verbatim}
 	   lhs                rhs                  support confidence     lift
 	   1  {weekday=Fri,                                                      
@@ -499,9 +499,9 @@
 	   5  {casual=low,                                                       
 	   cnt=high}      => {registered=high} 0.12859097          1 3.673367
 	\end{verbatim}\color{black}
-	These five rules in general tells us that when it is weekdays, registered is high.
+	in general, these five rules tell us that when it is weekdays, registered is high.
 	
-	 sort the rules by lift with "casual=high" in the rhs. we obtained the following top 5 rules: \color{blue}
+	 Finally, we obtained the following top 5 rules by sorting with lift and with "casual=high" on the right hand side: \color{blue}
 	\begin{verbatim}
 	   lhs                   rhs              support confidence     lift
 	   1  {season=summer,                                                   
@@ -524,34 +524,34 @@
 	   weathersit=clear,                                                
 	   cnt=high}         => {casual=high} 0.01231190          1 16.61364
 	\end{verbatim}\color{black}
-	Here, we can see that when it is summer weekends and cnt is high, there will be a very large chance that casual is high.  
+	Here, we can see that when it is summer weekends and cnt is high, there will be a very large chance that casual users' bike rentals are high.  
 	
-	Rule 4 attracted our attention since it indicates that yr=2012 can help to predict high casual bike rental demand. We therefore plotted casual counts on yr 2011 and 2012 to compare the difference. 
-	
-	The association rule mining didn't give us too much more information about the dataset. But it confirms that Casual and Registered users behave differently. In the summer weekends, there are more bike rentals from casual bikers. In weekdays, there are more bike rentals from registered bikers. 
+	Rule 4 attracted our attention since it indicates that ``yr=2012'' can help to predict high bike rental demand from casual users. We therefore plotted hourly casual, registered, and cnt conditioned on yr to compare the difference. 
 	
 	\begin{figure}[H]
 		\centering
 		\begin{minipage}{.48\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/casual_yr.png}
-			\caption{Coplot of casual-hr$|$ yr colored on workingday}
+			\caption{Coplot of casual-hr$|$ yr}
 			%\label{fig:registered-cnt}
 		\end{minipage}%
 		\begin{minipage}{.48\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/registered_yr.png}
-			\caption{Coplot of registered-hr$|$ yr colored on workingday}
+			\caption{Coplot of registered-hr$|$ yr}
 			%\label{fig:casual-cnt}
 		\end{minipage}
 	\end{figure}
 	
 		\begin{figure}[H]
 			\centering
-			\includegraphics[scale=.8]{figures/cnt_year.png}
-			\caption{Coplot of cnt-hr$|$ yr colored on workingday}
+			\includegraphics[width=\linewidth]{figures/cnt_year.png}
+			\caption{Coplot of cnt-hr$|$ yr}
 		\end{figure}
-    From above figures, the bike rental demand from registered users and casual users all increase from 2011 to 2012 without changing on underlying pattern of the rental. Therefore, yr is also a strong predictor in bike sharing dataset.
+    From the above figures, the bike rental demands from the registered users and the casual users both increase from 2011 to 2012 without changing on the underlying pattern of the rental. Therefore, yr is also a strong predictor for the total counts.
+    
+    In summary, the association rule mining didn't give us too much more information about the dataset. But it confirmed that casual and registered users behave differently. In addition, it helped us to realize year is also a strong predictor for the bike rental demand. 
 	\section{Unsupervised Learning: Data Preprocessing}
 	\subsection{Dimension Reduction: PCA }
 	\label{sec:dimension-reduction}
@@ -559,11 +559,11 @@
 	\subsection{Data Reduction: Clustering Kmeans + Davies-Bouldi Index}
 	\label{data-reduction}
 	
-	The bike sharing dataset has  17365 data instances for the hourly bike sharing dataset. Instead of dimension reduction to reduce the number of attributes, we can use data reduction to reduce the number of cases. In this section, we consider to use clustering methods to cluster together similar cases. By doing so, we can have a reduced representation in volume but produces the same or similar analytical results.
+	The bike sharing dataset has  17365 data instances for the hourly bike sharing dataset. Instead of dimension reduction to reduce the number of attributes, we can use data reduction to reduce the number of cases. In this section, we consider using clustering methods to group similar cases together. By doing so, we can have a reduced representation for the dataset which produces the same or similar analytical results.
 	\subsubsection{Data transformation}
-	The k-means clustering uses Euclidean distance to calculate the similarity between instances, therefore the attributes of the input should be continuous numerical values. The bike sharing dataset has a mixture of categorical and numerical values, we thus need some data transformation before running k-means algorithm.
+	The k-means clustering uses Euclidean distance to calculate the similarity between instances, therefore the attributes of the input should be continuous numerical values. The bike sharing dataset has a mixture of categorical and numerical values, we thus need some data transformation before running the k-means algorithm.
 	
-	Instead of using all information to clustering the data, we considered only cluster the daily bike rental patterns. We thus feed the cnt to the k-means to group the days with similar cnt pattern together. We thus transformed the cnt in hourly dataset into days by aggregate data into days. Each day has 24 counts from hour 0 to hour 23.  The following is the first 6 instances of the matrix for k-means: \color{blue}
+	Instead of using all information to clustering the data, we considered only cluster the daily bike rental patterns. In other words, we fed the hourly counts to the k-means algorithm to group the days with similar counts pattern. To achieve this, we transformed the cnt in hourly dataset into a $713 \times 24$ matrix as follows: \color{blue}
 	\begin{verbatim} 
 	head(bike.24hourscnt)
  	  hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7 hr8 hr9 hr10 hr11 hr12 hr13 hr14 hr15
@@ -581,32 +581,32 @@
 	5   89  190  169  132   89   43   42   19
 	6   86  172  163  112   69   48   52   23
 	\end{verbatim} \color{black}
-	The goal is to use k-means and DBI to find a proper way to cluster the dataset. For example, as the following graph shows.
+	Our goal is using k-means and DBI to find a proper way to cluster the dataset. For example, we want to find some clusters as the following graph shows:
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.8]{figures/cluster_goal.png}
-		\caption{One example of k-means goal}
+		\caption{One example of our goal for k-means}
 	\end{figure}
 	
 	
 	\subsubsection{Fill in missing values}
-	As we can see from last section, the bike sharing dataset has lots of missing values. For example, the bike counts on the second day at hour 5 is missing. A check shows that there are 76 days with missing values, 14 days with more than 1 missing values. 
+	As we can see from the last section, the bike sharing dataset has lots of missing values. For example, the bike counts on the second day at hour 5 is missing. A check shows that there are 76 days with missing values, and 14 days with more than 1 missing values. 
 	
 	We can fill up the missing values by three ways with the ``zoo'' package:
 	\begin{enumerate}
-		\item fill the missing value by last 
+		\item fill the missing value by the last observation carried forward (locf)
 		
-		\item fill the missing value by linear 
+		\item fill the missing value by linear interpolation (linear)
 		
-		\item fill the missing value by cubic spline	
+		\item fill the missing value by cubic spline (spline)
 	\end{enumerate}
-	We remove the data of hour(3,5,6,10,11,15,16) on day 1 and day 10, and fill them with the three filling methods. Then we computed the Root Mean Square Error. 
+	To compare the performances of these three methods, we removed the data of hour (3,5,6,10,11,15,16) on day 1 and day 10. Then we filled the missing values with the three filling methods. Finally, we computed the Root Mean Square Error for the comparison. 
 	\begin{figure}[H]
 		\centering
 		\begin{minipage}{.45\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/day1_missing_value.png}
-			\caption{ 3 filling methods on day 1,  rmse(locf)=8.093207, rmse(linear)=5.273207, rmse(spline)=2.306192}
+			\caption{3 filling methods on day 1, rmse(locf)=8.093207, rmse(linear)=5.273207, rmse(spline)=2.306192}
 			%\label{fig:registered-cnt}
 		\end{minipage}%
 		\begin{minipage}{.42\textwidth}
@@ -617,19 +617,17 @@
 			%\label{fig:casual-cnt}
 		\end{minipage}
 	\end{figure}
- From the rmse on workingday and non-working days, we found linear or spline interpolation fits our dataset better. We chose a combination of linear and spline interpolation to fill the whole dataset, we first used spline to fill the dataset, then the rest miss values are filled by linear interpolation.
-\subsubsection{k-means}	
+ From the root mean square errors of the three methods on workingday (day 10) and non-workingday (day 1), we found linear or spline interpolation fit our dataset better. We chose a combination of linear and spline interpolation to fill the whole dataset: we first used cubic spline to fill the dataset, then the rest miss values are filled by linear interpolation.
+\subsubsection{K-means}	
 
-After we filled up the missing values, we performed k-means from 2 to 9 clusters. The following is the plot of these clusters with the first two principle components as the axis.
+After filling up the missing values, we performed k-means from 2 to 9 clusters. The following is the plot of these clusters with the first two principle components as the axis.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.65]{figures/kmeans_workingday.png}
-		\caption{2 to 15 clusters with DBI with color=red on workingday and black on non-workingday}
+		\caption{Clusters with workingday (red) and non-workingday (black)}
 	\end{figure}
 
-We can see that workingday give a good separation in 3,4,5,6,7,8 clusters. To investigate what's other attributes the clustering used to 	separate the data. we print out the average temperature on each cluster.
-
-Let's use k=4 as an example: \color{blue}
+We can see that workingday give a good separation of clusters when there are 3 to 8 clusters. To investigate what are other attributes used to separate the data in k-means, we printed out the average temperature on each cluster with the workingday. We use k=4 as an example: \color{blue}
 \begin{multicols}{2}
 	\begin{verbatim}
 Cluster #1
@@ -662,52 +660,54 @@ Total days: 145
 	\end{verbatim}
 \end{multicols} 
 \color{black}
-As we can see, cluster 1 and 4 are mainly composed of workingdays: 100\% in cluster 1, 98.6\% in cluster 4; cluster 3 are mainly composed of non-working days (97.26\%).  Cluster 2 is a mixture of working and non-workingday, But the temperature in cluster 2 is obviously lower than other clusters(most likely to be in the winter). Therefore, workingday and temp are good attributes for this clustering separation.
+As we can see, cluster 1 and 4 are mainly composed of workingdays: 100\% in cluster 1, 98.6\% in cluster 4; cluster 3 are mainly composed of non-workingdays (97.26\%).  Cluster 2 is a mixture of workingdays and non-workingdays, but the average temperature in cluster 2 is obviously lower than that in other clusters. Therefore, workingday and temp are good attributes to separate the clusters.
 
-A drawing on average counts on each cluster confirmed our finding:
+A drawing of average hourly counts on each cluster confirmed our findings:
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.65]{figures/kmeans_clusters.png}
 		\caption{Average counts plot on each cluster}
 	\end{figure}
-The following are the findings:
+The following are our observations:
 
 \begin{enumerate}
-	\item cluster 1 and cluster 4 are having the pattern of workingdays. However, the counts in cluster 1 is lower than cluster 4 which indicates cluster 1 is representative for lower temp, and 4 for higher temp.
-	item counts in cluster 2 look like a mixture of working and non-working days with low counts. It is more likely in the winter.
-	\item cluster 3 are high counts with non-working day pattern.
+	\item Cluster 1 and cluster 4 are having the pattern of workingdays. However, the counts in cluster 1 is lower which indicates cluster 1 is representative for days with the lower temperature.
+	\item Counts in cluster 2 look like a mixture of working and non-working days with low counts. It is more likely in the winter.
+	\item Cluster 3 are high counts with the pattern of non-workingday.
 \end{enumerate}
 
 \subsubsection{DBI}
-To determine how many clusters we should choose for the k-means, we used Davies-Bouldin index method. After 8 runs, we find the following graph is representative with the averaged minimum DBI=8.
+To determine how many clusters we should choose for the k-means, we used Davies-Bouldin index method. After 8 runs, we found the following graph is representative with the average minimum DBI=8.
 	\begin{figure}[H]
-		\centering
 		\includegraphics[scale=.65]{figures/dbi_8.png}
 		\caption{2 to 15 clusters with DBI}
 	\end{figure}
 	
 	\subsection{Data Reduction: Outlier Detection}
-	Another way to reduce the data is getting rid of extreme values. By doing so, we can find a better representation of the data. In this section, we consider to use Interquartile Range ( ``A filter for detecting outliers and extreme values based on interquartile ranges.'') in WEKA  and lofactor in R to detect outliers.  
+	Another way to reduce the data is to remove extreme values. By doing so, we can find a better representation of the data. In this section, we consider to use Interquartile Range ( ``A filter for detecting outliers and extreme values based on interquartile ranges.'') in WEKA  and lofactor in R to detect outliers.  
 	
-	We first tried Interquartile Range in WEKA. However, this ``smart'' algorithm gave us 21 outliers which are all holidays:
+	We first tried Interquartile Range filter in WEKA. This ``smart'' algorithm gave us 21 outliers which are all holidays:
 		\begin{figure}[H]
 			\centering
 			\includegraphics[scale=.65]{figures/outlier_weka_holliday.png}
-			\caption{outliers detected by WEKA (black line is the count in this day, red is 7 days ago, black is 7 days after)}
+			\caption{Outliers detected by WEKA (black line is the count on this day, red is 7 days ago, black is 7 days after)}
 		\end{figure}
-	We can see that the black lines are very different than red lines (7 days ago) and blue lines (7 days after)	in all 21 days. This is because all of these 21 holidays are happening during the weekdays. In holiday, the pattern is the non-workingday. And these holidays usually happen in weekdays.
+	We can see that the black lines are very different than red lines (7 days ago) and blue lines (7 days after) in all 21 days. This is because all of these 21 holidays are happening on weekdays. When the holiday happens on weekdays, the bike rental pattern is more similar to that of non-workingdays.
 	
-	We decided to remove the holiday information in the dataset, and ran Interquartile Range filter again on the dataset. Then we obtained the following days as outliers:
+	We decided to remove the holiday information in the dataset and ran Interquartile Range filter again. Then we obtained the following days as outliers:
 		\begin{figure}[H]
-			\centering
 			\includegraphics[scale=.65]{figures/outlier_weka_nonholliday.png}
 			\caption{outliers detected by WEKA without holiday information}
+			\label{fig:outlier_weka}
+			%\label{fig:outlier_weka)
 		\end{figure}
-	It seems that only on 2011-03-10 and 2011-07-04, the black lines are different than red/blue lines.
+	It seems that only on 2011-03-10 and 2011-07-04, the black lines are different than red/blue lines from Figure \ref{fig:outlier_weka)}.
+	
+	We also tried the lofactor outlier detector in R:
 	\begin{figure}[H]
 		\includegraphics[scale=0.7]{figures/outlier_R.png}
 	\end{figure}
- Notice that  on 2012-10-29, there is a big storm based on Gama's paper about event detection \cite{dataset}, the detector in R caught this. We use the events detected in Gama's paper as a baseline comparison here. 
+ We noticed that on 2012-10-29, there is a big storm based on Gama's paper about event detection \cite{dataset}, the detector in R caught this. We then used the events detected in Gama's paper as a baseline comparison for our outlier detectors. 
 
  	\begin{figure}[H]
  		\centering
@@ -722,7 +722,7 @@ To determine how many clusters we should choose for the k-means, we used Davies-
  			%\caption{Coplot of registered-hr$|$ yr colored on workingday}
  			%\label{fig:casual-cnt}
  		\end{minipage}
- 		5\caption{red: events found by detector 1, yellow: events found by detector 2, green: events found by detector 3}
+ 		5\caption{red: events found by detector in WEKA with holiday information, yellow: events found by detector in WEKA without holiday information, green: events found by detector in R with holiday information}
  	\end{figure}
  	As we can see from the above table, our outlier detectors do help find some events which influence the bike rental. We can eliminate these days found by the three outlier detectors. However, we are also removing points which might be useful since there might be a lot of false alarms on the days detectors found.  
  	
