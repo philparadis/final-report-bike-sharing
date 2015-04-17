@@ -70,6 +70,46 @@
 	
 	\section{Introduction}
 	\label{sec:introduction}
+	
+	Philippe's introduction draft:
+	\begin{enumerate}
+		\item Load data
+		\item Basic data pre-processing
+		\item Imputation (Numeric variables, categorical variables, analysis)
+		\item Visualization (most of it Yue is in charge, but I performed visualization of imputations as well as visualization for the each day in the entire 2 years's worth of data for casual, registered and cnt...)
+		\item Data augmentation: add previous X hours as columns... for example, add "cnt.1hrago", ..., "cnt.24hrago" (work in progress)
+		\item Features Engineering:
+		\begin{itemize}
+			\item Added a "bad rows" column, where rows with poor imputation results are flagged and discarded from the training phase)
+			\item Added "special events", such as Christmas, where we expect lower demand for bike rental
+			\item Designated some non-holiday days as being holidays anyway. For example, whenever a Thursday is a holiday, then the Friday right after it will be designated a holiday too. Whenever a Tuesday is a holiday, then the Monday right before it will be designated as a holiday too.
+			\item Transform \texttt{atemp} into \texttt{atempdiff} (i.e. the distance between the current apparent temperature and the ``ideal'' apparent temperature)
+			\item Transform \texttt{hum} into \texttt{humdiff} (similar idea)
+			item Auxiliary datasets (work in progress...)
+		\end{itemize}
+		\item Did my own version of association rules mining, including using the hyperlift measure (found nothing interesting)
+		\item Supervised learning:
+		\begin{itemize}
+			\item Built a Random Forest classifier (fast, average results)
+			\item Built a neural network classifier using \texttt{nnet} (moderately slow, good results)
+			\item Used the following features:
+			\begin{verbatim}
+			c("season","yr","mnth","hr","weekday","workingday",
+			"weathersit","atempdiff","hum","windspeed")
+			\end{itemize}
+			\end{verbatim}
+			\item Performed a grid search to find ideal parameter of neural network
+			\item Ranked in the top 150 on Kaggle
+			\item Noticed that my model tended to overfit and that better scores would frequently be obtained when using very small number of epochs
+			\item Switched to \texttt{avNNet}, a parallel ensemble method for neural network
+			\item Speed remained the same, results improved considerably
+			\item Rank position on Kaggle yet to be determined
+			\item Attempted a Deep Neural Network model with the package \texttt{h2o}. The package is incredibly fast and very easy to interface with, unfortunately I found the neural network model to be extremely unstable. I could not obtain better results than with the simpler single-hidden layer neural networks above.
+			\item Attempted to use the \texttt{RSNNS} package to train a Jordan neural network, which is a type of recurrent neural network designed specifically to perform well with time series. Unfortunately, the package would always crash R and I never managed to get it to work.
+		\end{itemize}
+	\end{enumerate}
+	
+	\subsection{Questions}
 		What relationships do we expect to see in the data?
 		\begin{itemize}
 			\item Variation in bike rentals based on hour of the day
