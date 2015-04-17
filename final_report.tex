@@ -209,10 +209,10 @@
 	
 	Moreover, the hierarchical clustering grouped atemp and temp, cnt and registered, season and month, hum and weathersit, weekday and workingday together in the lowest level.  If we want two clusters from the hierarchical clustering, we will get atemp, temp, casual, cnt, registered, season, mnth, yr as one cluster; and hum, weathersit, weekday, workingday, holiday, windspeed as the other cluster.
 	
-	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) temp/weathersit to cnt, 2) workingday (weekday and non-holiday) to cnt, 3) hr/workingday to cnt, 4)season/mnth to cnt, 5) registered to casual. 
+	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) temp/weathersit to cnt, 2) hr/workingday (weekday and non-holiday) to cnt,  3)season/mnth to cnt, 4) registered to casual. 
 	
 	
-	\paragraph*{Explore 1. Temp/Weathersit to Cnt} Most likely, temperature and weather influence the bike demand. We thus plotted temp against daily cnt with weather information:
+	\paragraph*{Explore 1. temp/weathersit to cnt} Most likely, temperature and weather influence the bike demand. We thus plotted temp against daily cnt with weather information:
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.85]{figures/temp_counts.png}
@@ -239,7 +239,7 @@
 	\end{figure}
    We can confirm the high linear correlation between temp and cnt from Figure \ref{fig:temp} since the plot is most linear. On the other hand, we can see from Figure \ref{fig:atemp} that the bike rental demand is the highest at atemp$=0.7$, it start to decrease when atemp exceeds 0.7. 
 	
-	\paragraph*{Explore 2. workingday (weekday and non-holiday) to Cnt} The bike rental demand probably shows a different pattern on weekdays and weekends. Many people rent bikes to work on weekdays, and other people rent bikes for leisure on weekends. To investigate if this affects the bike rental demand, we first plotted the counts on a typical week:
+	\paragraph*{Explore 2. hr/workingday (weekday and non-holiday) to cnt} The hourly bike rental demand probably shows a different pattern on weekdays and weekends. Many people rent bikes to work on weekdays, and other people rent bikes for leisure on weekends. To investigate if this affects the bike rental demand, we first plotted the counts on a typical week:
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.9]{figures/week_cnt.png}
@@ -267,39 +267,43 @@
 		\item Whenever there is a holiday on weekdays, the bike rental shows very different pattern than that of usual weekdays. It can be similar to the weekends' bike rental pattern with lower counts (Monday, Tuesday and Thursday in Figure \ref{fig:weekday_holiday}) or a combination of weekdays' pattern and weekends' pattern (Monday and Friday in Figure \ref{fig:weekday_holiday}). 
 	\end{enumerate}
 	
-	
-	\paragraph*{Explore 3.} Most certain the hour/workingday of the day also correlates with Bike demand. We can plot: 
+ Therefore, workingday (weekday and non-holiday) is a good predictor for the hourly bike counts as the following graph shows: 
 	\begin{figure}[H]
 		\centering
-		\includegraphics[scale=.85]{figures/hr_cnt.png}
+		\includegraphics[width=\linewidth]{figures/hr_cnt.png}
 	\end{figure}
 	
-	As we can see from the above figure, the bike rentals are concentrating from 7am to 7pm. Moreover, the working day and non-working day show a different pattern on bike rental. On workingday, the peak rental occurs at 7-8am, and 5-6pm which is the time people go to work and get off work. On non-workingday, the peak rentals occur from 10am to 4pm, which is the time families do outdoor activity.  From this, a bold guess is that more registered people rent on workingdays, and more casual users rent on non-working days. We confirmed this by the following conditional plot.
+	The bike rentals are concentrating from 7am to 9pm on all days.  The peak rental occurs at 8-9am and 5-6pm on workingdays and occurs from 10am to 4pm on non-workingdays. 
+	
+	%From this, a bold guess is that more registered people rent on workingdays, and more casual users rent on non-working days. We confirmed this by the following conditional plot.
 	
 	
-	\paragraph*{Explore 4.} Finally let’s see if usage varies depending on the month\ season. We first drew a boxplot. 
+	\paragraph*{Explore 3. mnth/season to cnt} Let’s see if bike rental demand depending on the month\ season. To see the relationship of month and bike rental counts, we plotted a boxplot: 
 	\begin{figure}[H]
 		\centering
-		\includegraphics[scale=.6]{figures/month_count.png}
+		\includegraphics[width=\linewidth]{figures/month_count.png}
 		\caption{Boxplot of counts on different months}
 	\end{figure}
-	
-	We can see that demand in January is the lowest and it peaks in the summer. To explore more, we drew a coplot of hourly bike counts conditioned on month.
+	The bike rental demand is the lowest in January and is the highest from May to October. To see if the bike rental patterns are similar among months, we plotted a coplot of hourly bike counts conditioned on month.
 	
 	\begin{figure}[H]
 		\centering
-		\includegraphics[scale=1]{figures/cnt_hr_mnth.png}
-		\caption{Average hourly bike rental on different month)}
+		\includegraphics[width=\linewidth]{figures/cnt_hr_mnth.png}
+		\caption{Average hourly bike rental on different month}
 	\end{figure}
-	The bike rental peaks in the month from May to October. However, the pattern of hourly rental are similar with the peak is bigger in these months. It seems that during the month from May to October, more people rent bikes for commuting to work. For example, compare October and November in the above graph, the rental are very similar except during rush hours. 
+	The bike rentals are the highest in the month from May to October, and the patterns of hourly rental are similar in these months with  the afternoon peak higher than the morning peak. The difference between the afternoon peak and the morning peak might due to the casual users going out biking in the afternoon during the summer.  From November to February, the bike rentals are low and the morning peak has similar counts as that of the afternoon peak. 
+	
+	Next, we investigated the relationship of season with bike rental counts. We first plotted a coplot of hourly counts conditioned on season:
 	
 		\begin{figure}[H]
 			\centering
-			\includegraphics[scale=.9]{figures/coplot_season.png}
+			\includegraphics[width=\linewidth]{figures/coplot_season.png}
 			\caption{Coplot of hourly counts conditional on season}
 		\end{figure}
 	
-	 Let's see if different season behave differently by a parallel coordinate plot. The following are the plots from Ggobi for different seasons.
+	 The bike demand is the highest in the fall (July to September) and is the lowest in the spring(January to March). The bike rental patterns are similar in the summer, the fall, and the winter with afternoon peak higher than morning peak. 
+	 
+	 We then used parallel coordinate plots in Ggobi to compare all attributes in different seasons:
 	 
 	 \begin{figure}[H]
 	 	\centering
@@ -328,7 +332,7 @@
 	 		\caption{Winter}
 	 	\end{minipage}
 	 \end{figure}
-	From the above plots, we can see that casual/registered users' demand are different in different seasons. The pattern is summarize in the following table. 
+	From the above plots, we noticed that casual users' bike rental demand are different than that of registered users in different seasons. The demand pattern is summarize in the following table:
 	
 	\begin{table}[H]
 		\centering
@@ -338,12 +342,12 @@
 			Registered & median, high & median, high & median, high & low, median\\
 			Casual & low & low, median, high & low, median & low \\ \hline
 		\end{tabular}
+		\caption{Bike rental demand of casual/registered users in different season}
 	\end{table}
-	
-	
-    It seems that month will give more accurate information than season in the prediction. Since these two attributes are highly correlated, we will keep month in our experiment.	
+    %It seems that month will give more accurate information than season in the prediction. Since these two attributes are highly correlated, we will keep month in our experiment.	
 		
-	\paragraph*{Explore 5.} Registered and casual users' demand Vs. workingday
+	\paragraph*{Explore 4. workingday to registered/casual}
+	We found in Explore 3 that casual users behave differently than registered users in different seasons. To see if workingdays contribute to the difference, we plotted a coplot of hourly counts conditioned on season with colored workingdays.
 	 \begin{figure}[H]
 	 	\centering
 	 	\begin{minipage}{.5\textwidth}
@@ -359,7 +363,7 @@
 	 		\label{fig:casual-cnt}
 	 	\end{minipage}
 	 \end{figure}
-	 From Figure \ref{fig:registered-cnt} and Figure \ref{fig:casual-cnt}, we can see that Registered users and casual users behave differently on workingday. More registered users rent bike on workingdays, and more casual users rent bike on non-working days.
+	 From Figure \ref{fig:registered-cnt} and Figure \ref{fig:casual-cnt}, we can see that registered users and casual users behave differently on workingdays and non-workingdays. More registered users rent bike on workingdays, and more casual users rent bike on non-working days.
 	 	\begin{figure}[H]
 	 		\centering
 	 		\includegraphics[scale=.9]{figures/coplot_registered_casual_mnth.png}
