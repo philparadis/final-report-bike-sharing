@@ -128,7 +128,7 @@
 			registered   & count of registered users\\ \hline
 			cnt   & count of total rental bikes including both casual and registered \\ \hline
 		\end{tabular}
-		\caption{summary of the bike sharing dataset}
+		\caption{Summary of the bike sharing dataset}
 			\label{table:dataset}
 	\end{table}
 	\subsection{Data Visualization}
@@ -137,7 +137,7 @@
 	Data visualization is a way to gain some insight about the dataset we are investigating. We first plotted an scatterplot matrix on bike sharing daily dataset to explore the correlations between the attributes.
 	\begin{figure}[H]
 		\includegraphics[scale=0.6]{figures/scatterplot.png}
-		\caption{scatterplot matrix of the bike sharing (daily) dataset}
+		\caption{Scatterplot matrix of the bike sharing (daily) dataset}
 		\label{fig:scatterplot}
 	\end{figure}
 	
@@ -156,7 +156,7 @@
 			\hline
 			%	registered~ &
 		\end{tabular}
-		\caption{correlations to cnt in decreasing order}
+		\caption{Correlations to cnt in decreasing order}
 	\end{table}
 	
     To further explore the correlations between variables, we plotted a heat map with hierarchical clustering. 
@@ -169,7 +169,7 @@
 	
 	Moreover, the hierarchical clustering grouped atemp and temp, cnt and registered, season and month, hum and weathersit, weekday and workingday together in the lowest level.  If we want two clusters from the hierarchical clustering, we will get atemp, temp, casual, cnt, registered, season, mnth, yr as one cluster; and hum, weathersit, weekday, workingday, holiday, windspeed as the other cluster.
 	
-	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) temp/weathersit to cnt, 2) workingday to cnt, 3) hr/workingday to cnt, 4)season/mnth to cnt, 5) registered to casual. 
+	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) temp/weathersit to cnt, 2) workingday (weekday and non-holiday) to cnt, 3) hr/workingday to cnt, 4)season/mnth to cnt, 5) registered to casual. 
 	
 	
 	\paragraph*{Explore 1. Temp/Weathersit to Cnt} Most likely, temperature and weather influence the bike demand. We thus plotted temp against daily cnt with weather information:
@@ -187,39 +187,46 @@
 		\begin{minipage}{.44\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/atemp_cnt.png}
-			\caption{atemp against average cnt}
+			\caption{Atemp against average cnt}
 			\label{fig:atemp}
 		\end{minipage}%
 		\begin{minipage}{.44\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/temp_cnt.png}
-			\caption{temp against average cnt}
+			\caption{Temp against average cnt}
 			\label{fig:temp}
 		\end{minipage}
 	\end{figure}
    We can confirm the high linear correlation between temp and cnt from Figure \ref{fig:temp} since the plot is most linear. On the other hand, we can see from Figure \ref{fig:atemp} that the bike rental demand is the highest at atemp$=0.7$, it start to decrease when atemp exceeds 0.7. 
 	
-	\paragraph*{Explore 2. Weekdays to Cnt} Most likely, the bike rental will show a different pattern on weekdays and weekends. part of the people who rent bike on weekdays probably use it for commute to work, people who rent bikes on weekends most likely are for leisure.
-	
-	First, we plotted the counts on a typical week:
+	\paragraph*{Explore 2. workingday (weekday and non-holiday) to Cnt} The bike rental demand probably shows a different pattern on weekdays and weekends. Many people rent bikes to work on weekdays, and other people rent bikes for leisure on weekends. To investigate if this affects the bike rental demand, we first plotted the counts on a typical week:
 	\begin{figure}[H]
 		\centering
-		\includegraphics[scale=.8]{figures/week_cnt.png}
+		\includegraphics[scale=.9]{figures/week_cnt.png}
+		\caption{A typical week of bike rental counts (Sat.- Fri.)}
+		\label{fig:typical_week}
 	\end{figure}
-	
-	We see that the bike demand is different on weekdays and weekends in this week. To check if it is true generally, we plotted the average hourly counts conditional on day of the week from the whole dataset.
+ We can see that the bike demand is different on weekdays and weekends in Figure \ref{fig:typical_week}. To check if it is true generally, we plotted the average hourly counts conditioned on day of the week from the whole dataset.
 	\begin{figure}[H]
 		\centering
-		\includegraphics[scale=.6]{figures/hr_weekday.png}
+		\includegraphics[scale=.5]{figures/hr_weekday.png}
 	\end{figure}
+	In general, there are two peaks of bike rental during weekdays: around 8-9am and around 5-6pm when people go to work and get off work. On the other hand, the peak bike rentals happen from 12pm to 4pm on weekends when people go outdoors for leisure. 
 	
-	The following is the plot of hourly counts conditional on day of the week AND if it's a holiday.
+	A natural question to ask here is that what's the bike rental demand is on holidays, especially holidays on weekdays?  Is it going to be similar as the pattern of a weekday or that of weekends? To answer this question, we plotted the average hourly counts conditioned on day of the week AND if it's a holiday.
 		\begin{figure}[H]
 			\centering
-			\includegraphics[scale=1]{figures/hr_weekday_holiday.png}
-			\caption{Hourly bike rental on different weekdays and holidays (1 indicates holiday, 0 indicates non-holiday)}
+			\includegraphics[scale=.5]{figures/hr_weekday_holiday.png}
+			\caption{Average hourly bike rental on different weekdays and holidays (1 indicates holiday, 0 indicates non-holiday)} 
+			\label{fig:weekday_holiday}
 		\end{figure}
-	From above figure, we can see that whenever there is a holiday, the bike rental shows very different pattern than usual weekdays.  Sometimes the pattern is like a bike rental in weekends (Monday in the above figure).
+		
+	Here are the observations from Figure \ref{fig:weekday_holiday}:
+	\begin{enumerate}
+		\item There is no holiday on weekends from the dataset since the plot of bike rental on Sunday and Saturday with holiday=1 are empty.
+		\item Whenever there is a holiday on weekdays, the bike rental shows very different pattern than that of usual weekdays. It can be similar to the weekends' bike rental pattern with lower counts (Monday, Tuesday and Thursday in Figure \ref{fig:weekday_holiday}) or a combination of weekdays' pattern and weekends' pattern (Monday and Friday in Figure \ref{fig:weekday_holiday}). 
+	\end{enumerate}
+	
 	
 	\paragraph*{Explore 3.} Most certain the hour/workingday of the day also correlates with Bike demand. We can plot: 
 	\begin{figure}[H]
