@@ -1,0 +1,21 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Dataset \046 Data exploration}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Dataset}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Data Visualization}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Association Rule Mining}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Unsupervised Learning: Data Preprocessing}{}% 6
+\BOOKMARK [2][-]{subsection.3.1}{Dimension Reduction: PCA }{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.2}{Data Reduction: Clustering Kmeans + Davies-Bouldi Index}{section.3}% 8
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Data transformation}{subsection.3.2}% 9
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Fill in missing values}{subsection.3.2}% 10
+\BOOKMARK [3][-]{subsubsection.3.2.3}{k-means}{subsection.3.2}% 11
+\BOOKMARK [3][-]{subsubsection.3.2.4}{DBI}{subsection.3.2}% 12
+\BOOKMARK [2][-]{subsection.3.3}{Data Reduction: Outlier Detection}{section.3}% 13
+\BOOKMARK [1][-]{section.4}{Experimental Design}{}% 14
+\BOOKMARK [1][-]{section.5}{Experiments and Results}{}% 15
+\BOOKMARK [1][-]{section.6}{Supervised Learning}{}% 16
+\BOOKMARK [2][-]{subsection.6.1}{Kaggle Competition}{section.6}% 17
+\BOOKMARK [1][-]{section.7}{Data preparation}{}% 18
+\BOOKMARK [1][-]{section.8}{Data Imputation}{}% 19
+\BOOKMARK [2][-]{subsection.8.1}{The two alternative problems on Kaggle}{section.8}% 20
+\BOOKMARK [1][-]{section.9}{Conclusion and Further Work}{}% 21
