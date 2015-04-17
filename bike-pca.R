@@ -1,30 +1,32 @@
-source("bike-load.R")
+source("bike-features-extract.R")
 
 library(FactoMineR)
 
 #######################################################
-### Data-preprocessing for PCA and ICA
+# PCA
 #######################################################
 
-# In order to run PCA and ICA, we will perfom the following pre-processing
-# steps:
-# (1) split any categorical variables with more than 2 classes
-# into multiple binary features.
-# (2) convert date variables into numeric variables
-# (3) discard features that are obviously redundant or unwanted
+# CASUAL
+# Select features
+m.casual <- data.frame(model.matrix( 
+  ~ season + yr + mnth + hr + weekday + workingday +
+    weathersit + atempdiff + humdiff + windspeed + casual,
+  data = bike.hfx
+))
+m.registered <- data.frame(model.matrix( 
+  ~ season + yr + mnth + hr + weekday + workingday +
+    weathersit + atempdiff + humdiff + windspeed + registered,
+  data = bike.hfx
+))
+m.cnt <- data.frame(model.matrix( 
+  ~ season + yr + mnth + hr + weekday + workingday +
+    weathersit + atempdiff + humdiff + windspeed + cnt,
+  data = bike.hfx
+))
 
-# Note: We use the following trick: with(df, model.matrix(~ myVar + 0))
-# to recode a categorical variable "myVar" with N possible labels into
-# N binary columns called "myVarlabel1", ..., "myVarlabelN"
-
-bike.hourly.normalized <- bike.hourly.binarized
-first.day <- bike.hourly.normalized$datetime[1]
-last.day <- tail(bike.hourly.normalized$datetime, 1)
-bike.hourly.normalized$datetime <- as.numeric(difftime(bike.hourly.normalized$datetime, first.day, units="days")) / 
-                                as.numeric(difftime(last.day, first.day, units="days"))
-
-# PCA
-pca <- prcomp(bike.hourly.normalized)
+pca.casual <- prcomp(m.casual[2:ncol(m.casual)], center=TRUE, scale.=TRUE)
+pca.registered <- prcomp(m.registered[2:ncol(m.registered)], center=TRUE, scale.=TRUE)
+pca.cnt <- prcomp(m.cnt[2:ncol(m.cnt)], center=TRUE, scale.=TRUE)
 
 # FAMD
 famd <- FAMD(bike.hourly)
