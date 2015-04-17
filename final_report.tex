@@ -687,6 +687,40 @@ To determine how many clusters we should choose for the k-means, we used Davies-
 \label{sec:experimental-design}
 
 
+
+\section{Data preparation}
+WILL MOST LIKELY NEED TO MOVE THIS SOMEWHERE ELSE AND JUST REFER TO IT HERE.
+
+The relationship between \texttt{atemp} and \texttt{cnt} is non-linear, as can be seen from GRAPHREF. However, there seems to be a peak temperature for bike rentals at around PEAKTEMP. Hence, it would make sense to define a new variable corresponding to the (absolute value) difference between the current temperature and this ``ideal temperature''. Let \texttt{atempdiff} be defined as:
+\begin{verbatim}
+atempdiff <- abs(atemp - PEAKTEMP)
+\end{verbatim}
+Then, the relationship between \texttt{atemptdiff} and \texttt{cnt} is roughly linear as we can see from OTHERGRAPH.
+
+IDEM with \texttt{hum}, except the ``ideal humidity'' is at around 0.2.
+
+\section{Data Imputation}
+
+We observed that some rows were missing in the hourly Bike Sharing datasets. In total, 165 observations were missing in 76 different days. We decided that it would be wise to impute the missing data, since it could help build a better regression model. Moreover, having no missing data would make the R programming significantly easier since the dataset structure would become more regular and hence much easier to work with.
+
+\subsection{Imputation of Numeric Variables}
+We decided to use the \texttt{zoo} package to handle data imputation. The numeric variables (i.e. \texttt{temp}, \texttt{atemp}, \texttt{hum}, \texttt{windspeed}, \texttt{casual}, \texttt{registered}, \texttt{cnt}) were imputed using linear interpolation. This was very straightforward and produced results which we deemed acceptable for most variables such as \texttt{temp}, \texttt{atemp}, \texttt{hum} and \texttt{windspeed}. However, for \texttt{casual}, \texttt{registered} and \texttt{cnt}, the imputated data was clearly wrong in a few isolated cases. In the vast majority of the cases, only 1 or 2 observations were missing in a 24-hour period, in which case the linear interpolation was deemed appropriate. In fact, this was the case for 68 out of the 76 days with missing data. However, there were 8 days with a large number of missing observations (between 6 and 23 missing observations per 24-hour period). We decided to investigate visually the results of our imputation method for those days by constructing Figure~\ref{fig:badrows} below.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.98\textwidth]{figures/badrows.pdf}
+	\caption{Imputation of missing observations of \texttt{cnt} for the 8 days with the highest number of missing data. Each day is plotted along with 24 hours before and 24 hours after, in order to see the continuity between successive days after data imputation. The {\textbf{\color{black}black}} curve represents the actual values of \texttt{cnt} from the dataset. The {\textbf{\color{red}red}} curve are the observations that were imputed using linear interpolation. The {\textbf{\color{green}green}} curve represents the average value of \texttt{cnt} at the same hour on the same day of the week over the same month (the {\textbf{\color{green}green}} curve therefore provides a rough idea of what a typical day looks like and helps us decide if the imputation is acceptable or not).}
+	\label{fig:badrows}
+\end{figure}
+Without much surprise, linear interpolation of \texttt{cnt} produced poor results in 6 out of the 8 cases illustrated in Figure~\ref{fig:badrows}. However, the imputation on dates 2011-02-22 and 2011-08-28 produced good results. Indeed, the missing observations for those two days were during the hours of the night, during which \texttt{cnt} is fairly flat, hence linear interpolation produces acceptable results. On the other hand, the missing observations from the other 6 days appear during the morning, afternoon or evening, during which \texttt{cnt} is highly non-linear. It would still be possible to impute missing data using linear interpolation if very few successive observations (perhaps one or two) were missing, but this is not the case here, which explains the poor results for those 6 days.
+
+At this point, we had a choice to either (1) design more sophisticated imputation methods or to (2) simply discard those 6 days with poor imputation results. Since the vast majority of imputation was successful (70 out of 76 days), we decided that it was best to go with option (2) and simply flag as ``bad rows'' those 6 days from Figure~\ref{fig:badrows} for which imputation of \texttt{cnt} was poor. This allows us later to simply exclude those days completely in the training phase of supervised learning.
+
+\subsection{Imputation of Categorical Variables}
+
+At this point, we imputed all the numeric variables for all missing rows, but we are still missing all the categorical variables. Some of them such as \texttt{season}, \texttt{yr}, \texttt{mnth}, \texttt{hr}, \texttt{weekday} are very obvious. They can all be derived uniquely from the corresponding \texttt{datetime} variable in each new row.
+
+The categorical variables that are less obvious are \texttt{holiday}, \texttt{workingday} and \texttt{weathersit}. We decided to impute those values by taking a majority vote using all the other existing observations in the same day. In the case of \texttt{holiday} and \texttt{workingday}, this will obviously give the correct result. In the case of \texttt{weathersit}, this might not be exact, but it should be a decent approximation most of the time and we decided that the simplicity outweighed the disadvantages.
+
 \section{Experiments and Results}
 \label{sec:experiments-and-results}
 
@@ -711,37 +745,21 @@ Users can submit their predictions online and the RMSLE will be calculated
 
 Note that the testing data on Kaggle excludes the \texttt{cnt} field. As such, users must submit their predictions only to discover its RMSLE. However, the full data is present in the UCI's dataset and so, we can compute the RMSLE of our predictions by ourselves.
 
-\section{Data preparation}
-WILL MOST LIKELY NEED TO MOVE THIS SOMEWHERE ELSE AND JUST REFER TO IT HERE.
-
-The relationship between \texttt{atemp} and \texttt{cnt} is non-linear, as can be seen from GRAPHREF. However, there seems to be a peak temperature for bike rentals at around PEAKTEMP. Hence, it would make sense to define a new variable corresponding to the (absolute value) difference between the current temperature and this ``ideal temperature''. Let \texttt{atempdiff} be defined as:
-\begin{verbatim}
-atempdiff <- abs(atemp - PEAKTEMP)
-\end{verbatim}
-Then, the relationship between \texttt{atemptdiff} and \texttt{cnt} is roughly linear as we can see from OTHERGRAPH.
-
-IDEM with \texttt{hum}, except the ``ideal humidity'' is at around 0.2.
-
-\section{Data Imputation}
-
-We observed that some rows are missing in the hourly Bike Sharing datasets. In total, 165 rows are missing, which is almost 7 days worth of data. We decided that it would be wise to impute the missing data, since it could help build a better regression model. Moreover, having no missing data make the R programming significantly easier since the dataset structure would become more regular.
-
-We decided to use the \texttt{zoo} package to handle data imputation. The numeric variables were imputed using linear interpolation. We estimated that this was sufficient for most variables such as temperature, humidity and windspeed. However, for \texttt{casual}, \texttt{registered} and \texttt{cnt}, this did not always work. In most cases, only 1 or 2 observations were missing in a 24-hour period, in which case the linear interpolation was appropriate. However, there are 8 days with a large number of missing observations (between 6 and 23 missing observations per 24-hour period). We decided to investigate visualize the results of our imputation method for those days (see Figure~\ref{fig:badrows}).
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.98\textwidth]{figures/badrows.pdf}
-	\caption{Imputation of missing observations for the 8 days with the highest number of missing observations. The {\textbf{\color{black}black}} curve represents the actual values of \texttt{cnt} from the dataset. The {\textbf{\color{red}red}} curve are the observations that were imputed using linear interpolation. The {\textbf{\color{green}green}} curve represents the average value of \texttt{cnt} at the same hour on the same day of the week over the same month (the {\textbf{\color{green}green}} curve therefore provides a rough idea of what a typical day looks like and helps us decide if the imputation is acceptable or not).}
-	label{fig:badrows}
-\end{figure}
-As you can see, in most cases, linear interpolation does a poor job. Indeed, there are too many missing values and the pattern they cover is expected to be highly non-linear, except for the dates 2011-02-22 and 2011-08-28, in which the missing observations are all at night, where the pattern of bikes rental is flat.
-
-At this point, we decided to flag the 6 days above with poor imputation results as ``bad rows''. This allows us to exclude those days completely in the training phase of supervised learning.
-
 \subsection{The two alternative problems on Kaggle}
 
 Unfortunately, the problem of modeling and predicting bike rental demand as stated on Kaggle as two different interpretations.
 
+\begin{enumerate}
+	\item One
+	\item Two
+\end{enumerate}
 
+\subsection{Our Model}
+
+\begin{verbatim}
+training.features <-  c("season","yr","mnth","hr","weekday","workingday",
+"weathersit","atempdiff","hum","windspeed")
+\end{verbatim}
 
 \section{Conclusion and Further Work}
 	\label{sec:conclusion}

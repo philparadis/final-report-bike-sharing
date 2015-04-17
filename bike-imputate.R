@@ -59,10 +59,12 @@ imputate.bike.hourly.dataset <- function()
   M.approx <- t(matrix(na.approx(as.vector(t(M))), 24, 731))
   M.spline <- t(matrix(na.spline(as.vector(t(M))), 24, 731))
   
+  # The key here is this aggregate dataset:
   hourly.avg.by.hr.mnt.workingday <- aggregate(.~hr+mnth+workingday, data=bike.hourly, mean)
-  num.bad.rows <- length(bad.rows)
   
-  oldpar <- par(mfrow=c(num.bad.rows,3), mar=c(3,3,1,0), oma=c(0,0,0,0))
+  pdf("figures/badrows.pdf", width=8, height=6)
+  num.bad.rows <- length(bad.rows)
+  oldpar <- par(mfrow=c(num.bad.rows/2,2), mar=c(3.5,5,3,2), oma=c(0,0,0,0))
   for (row in bad.rows) {
     avg.counts <- c()
     for (rel in c(-1,0,1)) {
@@ -72,17 +74,31 @@ imputate.bike.hourly.dataset <- function()
         hourly.avg.by.hr.mnt.workingday$workingday == workingday
       avg.counts <- c(avg.counts, hourly.avg.by.hr.mnt.workingday[indices, "cnt"])
     }
-    plot(1:72, avg.counts, type="o", col="green", main=bike.daily[row,"date"])
-    lines(1:72, as.vector(t(M.locf[c(row-1,row,row+1),])),type='o',col="red")
-    lines(1:72, as.vector(t(M[c(row-1,row,row+1),])),type='o')
-    plot(1:72, avg.counts, type="o", col="green")
-    lines(1:72, as.vector(t(M.approx[c(row-1,row,row+1),])),type='o',col="red")
-    lines(1:72, as.vector(t(M[c(row-1,row,row+1),])),type='o')
-    plot(1:72, avg.counts, type="o", col="green")
-    lines(1:72, as.vector(t(M.spline[c(row-1,row,row+1),])),type='o',col="red")
-    lines(1:72, as.vector(t(M[c(row-1,row,row+1),])),type='o')
+    daterange.3days <- bike.daily[row-1,"date"] + as.difftime(0:71, unit="hours")
+    daterange.mid <- bike.daily[row,"date"] + as.difftime(0:23, unit="hours")
+#     plot(1:72, avg.counts, type="o", col="green", main=bike.daily[row,"date"])
+#     lines(1:72, as.vector(t(M.locf[c(row-1,row,row+1),])),type='o',col="red")
+#     lines(1:72, as.vector(t(M[c(row-1,row,row+1),])),type='o')
+    main <- paste(bike.daily[row,"date"], bike.daily[row,"weekday"])
+    if (bike.daily[row, "holiday"] == 1)
+      main <- paste(main, "(holiday)")
+    if (bike.daily[row, "date"] == as.POSIXct("2011-02-22", tz="UTC") ||
+          bike.daily[row, "date"] == as.POSIXct("2011-08-28", tz="UTC")) {
+      main <- paste(main, "(GOOD!)")
+    } else {
+      main <- paste(main, "(BAD!)")
+    }
+    plot(daterange.3days, avg.counts, type="o", col="green",
+         main=main,
+         ylab="cnt", xlab="datetime")
+    lines(daterange.mid, as.vector(t(M.approx[c(row),])),type='o',col="red")
+    lines(daterange.3days, as.vector(t(M[c(row-1,row,row+1),])),type='o')
+#     plot(1:72, avg.counts, type="o", col="green")
+#     lines(1:72, as.vector(t(M.spline[c(row-1,row,row+1),])),type='o',col="red")
+#     lines(1:72, as.vector(t(M[c(row-1,row,row+1),])),type='o')
   }
   par(oldpar)
+  dev.off()
   
   # According to the graphs above, we have to conclude that all the bad rows
   # with 6 or more missing values are "too bad" and should be discarded completely,
