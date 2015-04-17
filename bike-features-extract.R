@@ -2,6 +2,8 @@
 # We perform features extraction / features engineering in this file.
 # Note that we only perform this on the imputated dataset "bike.hi", for
 # simplicity's sake and because this is the dataset we really care about.
+source("bike-imputation.R")
+source("bike-helper.R")
 
 bike.hfx <- bike.hi
 
@@ -137,24 +139,30 @@ cta <- read.csv(cta.filename,
 
 good.stations <- c(40190, 40820, 40890, 40930, 41050, 41060, 41420)
 
-oldpar <- par(mfrow=c(2,1), mar=c(2,2,1,1))
-for (station in good.stations) {
-  station.cta <- cta[cta$station_id == station, ]
-  begin <- which(station.cta$date == as.POSIXct("2011-01-01", tz="UTC"))
-  end <- which(station.cta$date == as.POSIXct("2012-12-31", tz="UTC"))
-  if (length(begin) == 0 || length(end) == 0) {
-    cat("Can't find begin or end date...\n")
-  } else {
-    plot(casual ~ date, data=bike.daily)
-    plot(rides ~ date, data=station.cta[begin:end,],
-         main=paste(station.cta[1,"station_id"], station.cta[1,"stationname"]))
-    cat ("Press [enter] to continue")
-    line <- readline()
-    if (line == "q")
-      break
+visualize.stations.distributions <- function(stations.list) {
+  oldpar <- par(mfrow=c(2,1), mar=c(2,2,1,1))
+  for (station in stations.list) {
+    station.cta <- cta[cta$station_id == station, ]
+    begin <- which(station.cta$date == as.POSIXct("2011-01-01", tz="UTC"))
+    end <- which(station.cta$date == as.POSIXct("2012-12-31", tz="UTC"))
+    if (length(begin) == 0 || length(end) == 0) {
+      cat("Can't find begin or end date...\n")
+    } else {
+      plot(casual ~ date, data=bike.daily)
+      plot(rides ~ date, data=station.cta[begin:end,],
+           main=paste(station.cta[1,"station_id"], station.cta[1,"stationname"]))
+      cat ("Press [enter] to continue")
+      line <- readline()
+      if (line == "q")
+        break
+    }
   }
+  par(oldpar)
 }
-par(oldpar)
+
+# Uncomment and run the following line to visualize the distributions
+# of the various "good stations"
+#visualize.stations.distributions(good.stations)
 
 station.40890 <- cta[cta$station_id == 40890,]
 station.40930 <- cta[cta$station_id == 40930,]

@@ -16,11 +16,6 @@
 dir.create("figures", showWarnings = FALSE)
 dir.create("objects", showWarnings = FALSE)
 
-# Load relevant libraries
-library(caret)
-library(neuralnet)
-library(randomForest)
-
 # =========================================
 #    Dataset characteristics
 # =========================================   
