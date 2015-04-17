@@ -103,9 +103,8 @@
 	The summary of this dataset is as Table \ref{table:dataset} shows. More information of the dataset can be found at \url{http://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset}.
 	
 	\begin{table}[H]
-		\label{table:dataset}
 		\begin{tabular}{| p{5cm} | p{11cm} |} \hline
-			Number of instances: & 17389 (hours), 731 (days)\\
+			Number of instances: & 17389 (hourly), 731 (daily)\\
 			Number of Attributes: & 16\\ 
 			Attribute Characteristics: &  Categorical, Integer,
 			Date/time, Decimal\\
@@ -116,98 +115,91 @@
 			dteday    & date\\ \hline
 			season   & season (1:springer, 2:summer, 3:fall, 4:winter)\\ \hline
 			yr    &  year (0: 2011, 1:2012)\\ \hline
-			mnth &   month ( 1 to 12)\\ \hline
+			mnth &   month (1 to 12)\\ \hline
 			hr & hour (0 to 23) \\ \hline
-			holiday   & weather day is holiday or not \\ \hline
+			holiday   & whether day is holiday or not \\ \hline
 			weekday   &  day of the week \\ \hline
 			workingday   & 1: if day is neither weekend nor holiday; 0: otherwise.\\ \hline
 			weathersit   & 1: Clear; 2: Mist; 3: Light Snow, Light Rain; 4: Heavy Rain, Ice Pallets, Snow + Fog;\\ \hline
-			temp   & Normalized temperature in Celsius. \\ \hline
-			atemp    & Normalized feeling temperature in Celsius. \\ \hline
-			windspeed   & Normalized wind speed. \\ \hline
+			temp   & Normalized temperature in Celsius \\ \hline
+			atemp    & Normalized feeling temperature in Celsius \\ \hline
+			windspeed   & Normalized wind speed \\ \hline
 			casual   & count of casual users\\ \hline
 			registered   & count of registered users\\ \hline
 			cnt   & count of total rental bikes including both casual and registered \\ \hline
 		\end{tabular}
-		\caption{Bike sharing dataset summary}
+		\caption{summary of the bike sharing dataset}
+			\label{table:dataset}
 	\end{table}
 	\subsection{Data Visualization}
 	\label{sec:visual}
 	
-	We first plotted an scatterplot matrix on bike sharing days dataset.
+	Data visualization is a way to gain some insight about the dataset we are investigating. We first plotted an scatterplot matrix on bike sharing daily dataset to explore the correlations between the attributes.
 	\begin{figure}[H]
 		\includegraphics[scale=0.6]{figures/scatterplot.png}
+		\caption{scatterplot matrix of the bike sharing (daily) dataset}
 		\label{fig:scatterplot}
-		\caption{Scatterplot matrix of bike sharing (daily) dataset}
 	\end{figure}
 	
-	As we can see from Figure \ref{fig:scatterplot}, there are 0.83 correlation between season and mnth, 0.99 correlation between temp and atemp, and 0.95 correlation between registered and cnt, 0.67 between casual and cnt.
+	As we can see from Figure \ref{fig:scatterplot}, there are 0.99 correlation between temp and atemp, 0.95 correlation between registered and cnt, and 0.83 correlation between season and mnth.
 	
-	High correlation between two variables means that as one variable rises or falls, the other variable rises or falls as well. Since we don't want high correlation in our dataset, we can pick one attribute from each pairs with high correlation.
+	High correlation between two variables means that as one variable rises or falls, the other variable rises or falls as well. Since we don't want attributes with high correlation in our dataset, we can pick one attribute from each pair with high correlation.
 	
-	Moreover, from observing the last three columns of correlation between different attributes to registered, casual, and cnt, we can have a list of the correlations in decreasing order as the following table shows: 
+	On the other side, attributes with high correlations to cnt can be good predictors for the bike rental counts. From the last column of Figure \ref{fig:scatterplot}, we obtained a list of attributes with high correlations to cnt in decreasing order: 
 	\begin{table}[H]
+		\centering
 		\begin{tabular}{| l | l | l | l | l | l|}
-			cnt~ & registered & casual & temp/atemp & yr & season\\
-			correlation & 0.95 & 0.67 & 0.63 & 0.57 & 0.41\\
+			\hline
+			& registered & casual & temp/atemp & yr & season\\
+			\hline
+			 correlation to cnt& 0.95 & 0.67 & 0.63 & 0.57 & 0.41\\
 			\hline
 			%	registered~ &
 		\end{tabular}
+		\caption{correlations to cnt in decreasing order}
 	\end{table}
 	
-	A more clear visualization of correlation can be achieved by a heat map. 
+    To further explore the correlations between variables, we plotted a heat map with hierarchical clustering. 
 	\begin{figure}[H]
 		\includegraphics[scale=0.6]{figures/correlation.png}
+		\caption{Heat map of the bike sharing (daily) dataset}
 		\label{fig:correlation}
-		\caption{Scatterplot matrix of bike sharing (daily) dataset}
 	\end{figure}
-	We found that workingday has a negative correlation with casual users from the heat map. 
-	Moreover, the heat map has the function of hierarchical clustering. As we can see from left of the above heat map, the clustering put atemp and temp, cnt and registered, season and month, hum and weathersit, weekday and workingday together in the lowest level.  If we cut the hierarchical clustering into two clusters, we will get atemp,temp, casual, cnt, registered, season, mnth, yr as one cluster; hum, weathersit, weekday, workingday, holiday, windspeed as the other cluster.
+	From Figure \ref{fig:correlation}, we found that workingday has a negative correlation with casual users (-0.52) which corresponds to the intuition that more casual users go out biking when it is not workingday. 
 	
-	Another scatterplot matrix on hourly data with random sampling of size 1000 without replacement indicates that the hours have a high correlation with the hourly cnt as we can see from the following figure. 
-	\begin{figure}[H]
-		\includegraphics[scale=0.7]{figures/scatterplot_col_season.png}
-	\end{figure}
+	Moreover, the hierarchical clustering grouped atemp and temp, cnt and registered, season and month, hum and weathersit, weekday and workingday together in the lowest level.  If we want two clusters from the hierarchical clustering, we will get atemp, temp, casual, cnt, registered, season, mnth, yr as one cluster; and hum, weathersit, weekday, workingday, holiday, windspeed as the other cluster.
 	
-	Based on the above observations, we identify that temp, yr, season/mnth, hr, and workingday as our main focus in hourly dataset.
+	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) temp/weathersit to cnt, 2) workingday to cnt, 3) hr/workingday to cnt, 4)season/mnth to cnt, 5) registered to casual. 
 	
-	\paragraph*{Explore 1.} Most likely, temperature and weather have correlation with bike demand. We can plot:
+	
+	\paragraph*{Explore 1. Temp/Weathersit to Cnt} Most likely, temperature and weather influence the bike demand. We thus plotted temp against daily cnt with weather information:
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.85]{figures/temp_counts.png}
 	\end{figure}
 	
-	The rental bike counts increase when the temp increase. Moreover, with the same temperature, the better the weather is, the more bike rental it is.
+	The rental bike counts increases when the temperature increases. With the same temperature, the better the weather is, the more bike rental counts are.
+	
+	To compare the effects of feeling temperature and temperature on bike rental demand, we plotted atemp against the average cnt and temp against the average cnt:
 	
 	\begin{figure}[H]
 		\centering
-		\begin{minipage}{.45\textwidth}
+		\begin{minipage}{.44\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/atemp_cnt.png}
-			\caption{Average counts on different atemp}
+			\caption{atemp against average cnt}
 			\label{fig:atemp}
 		\end{minipage}%
-		\begin{minipage}{.45\textwidth}
+		\begin{minipage}{.44\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{figures/temp_cnt.png}
-			\caption{Average counts on different temp}
+			\caption{temp against average cnt}
+			\label{fig:temp}
 		\end{minipage}
 	\end{figure}
-   We can confirm the rental demand with temp on the above figures. Moreover, we can see from Figure \ref{fig:atemp}, it seems that the bike demand start to decrease when atemp is too high(atemp=0.7). Therefore, we plotted the the bike counts vs. $|atemp-0.7|$, the result is almost linear.
-	\begin{figure}[H]
-		\centering
-		\begin{minipage}{.45\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{figures/atemp_abs.png}
-		\end{minipage}%
-		\begin{minipage}{.45\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{figures/temp_abs.png}
-			%\caption{Average counts on different temp}
-		\end{minipage}
-	\end{figure}
+   We can confirm the high linear correlation between temp and cnt from Figure \ref{fig:temp} since the plot is most linear. On the other hand, we can see from Figure \ref{fig:atemp} that the bike rental demand is the highest at atemp$=0.7$, it start to decrease when atemp exceeds 0.7. 
 	
-	\paragraph*{Explore 2.} Bike rental vs. weekdays
+	\paragraph*{Explore 2. Weekdays to Cnt} Bike rental vs. weekdays
 	Most likely, the bike rental will show a different pattern on weekdays and weekends. part of the people who rent bike on weekdays probably use it for commute to work, people who rent bikes on weekends most likely are for leisure.
 	
 	First, we plotted the counts on a typical week:
@@ -413,7 +405,10 @@
 			 \end{figure}
 		\end{enumerate}
 		
-	\paragraph*{Preliminary Conclusion.}In short we have identified strong correlation between counts and with these predictors: 1. Temperature 2. Hour of the Day 3. Working Day 4. Month of the Year. 
+	\paragraph*{Preliminary Conclusion.}
+	Based on the above observations, we identify that temp/atemp, yr, season/mnth, and workingday as the main predictors for the  daily dataset, and we will investigate the relation of hr with hourly dataset.
+	
+	In short we have identified strong correlation between counts and with these predictors: 1. Temperature 2. Hour of the Day 3. Working Day 4. Month of the Year. 
 	
 	\subsection{Association Rule Mining}	
 	To investigate more about the dataset, we did an association rule mining. The bike sharing dataset contains a mixture of categorical and numeric attributes and therefore need some preparation before using apriori algorithm on it. Here are the steps for our experiment in association rule mining:
@@ -729,7 +724,7 @@ We observed that some rows are missing in the hourly Bike Sharing datasets. In t
 We decided to use the \texttt{zoo} package to handle data imputation. The numeric variables were imputed using linear interpolation. We estimated that this was sufficient for most variables such as temperature, humidity and windspeed. However, for \texttt{casual}, \texttt{registered} and \texttt{cnt}, this did not always work. In most cases, only 1 or 2 observations were missing in a 24-hour period, in which case the linear interpolation was appropriate. However, there are 8 days with a large number of missing observations (between 6 and 23 missing observations per 24-hour period). We decided to investigate visualize the results of our imputation method for those days (see Figure~\ref{fig:badrows}).
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.98\textwidth]{figures/badrows.pdf}
+%	\includegraphics[width=.98\textwidth]{figures/badrows.pdf}
 	\caption{Imputation of missing observations for the 8 days with the highest number of missing observations. The {\textbf{\color{black}black}} curve represents the actual values of \texttt{cnt} from the dataset. The {\textbf{\color{red}red}} curve are the observations that were imputed using linear interpolation. The {\textbf{\color{green}green}} curve represents the average value of \texttt{cnt} at the same hour on the same day of the week over the same month (the {\textbf{\color{green}green}} curve therefore provides a rough idea of what a typical day looks like and helps us decide if the imputation is acceptable or not).}
 	label{fig:badrows}
 \end{figure}
