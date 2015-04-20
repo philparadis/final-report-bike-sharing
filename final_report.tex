@@ -74,7 +74,7 @@
 	Philippe's introduction draft:
 	\begin{enumerate}
 		\item Load data
-		\item Basic data pre-processing
+			\item Basic data pre-processing
 		\item Imputation (Numeric variables, categorical variables, analysis)
 		\item Visualization (most of it Yue is in charge, but I performed visualization of imputations as well as visualization for the each day in the entire 2 years's worth of data for casual, registered and cnt...)
 		\item Data augmentation: add previous X hours as columns... for example, add "cnt.1hrago", ..., "cnt.24hrago" (work in progress)
@@ -552,9 +552,21 @@
     From the above figures, the bike rental demands from the registered users and the casual users both increase from 2011 to 2012 without changing on the underlying pattern of the rental. Therefore, yr is also a strong predictor for the total counts.
     
     In summary, the association rule mining didn't give us too much more information about the dataset. But it confirmed that casual and registered users behave differently. In addition, it helped us to realize year is also a strong predictor for the bike rental demand. 
-	\section{Unsupervised Learning: Data Preprocessing}
-	\subsection{Dimension Reduction: PCA }
+    
+    \section{Data Pre-processing}
+    \subsection{Basic Pre-Processing}
+    \subsection{Data Imputation}
+    
+	\section{Unsupervised Learning}
+	\subsection{Dimensionality Reduction: Features Selection}
+	The first step in performing dimensionality reduction is simply to apply common sense, i.e. features selection. Are all the features we have really necessary to begin with?
+	
+	We can drop the \texttt{instant} column, which is merely numbering the data. This is redundant because R already numbers the column for us. 
+	
+	\subsection{Dimensionality Reduction: PCA }
 	\label{sec:dimension-reduction}
+	
+	The bike sharing dataset contains a fair amount of PCA
 	
 	\subsection{Data Reduction: Clustering Kmeans + Davies-Bouldi Index}
 	\label{data-reduction}
@@ -734,7 +746,10 @@ To determine how many clusters we should choose for the k-means, we used Davies-
 
 
 \section{Data preparation}
-WILL MOST LIKELY NEED TO MOVE THIS SOMEWHERE ELSE AND JUST REFER TO IT HERE.
+
+\subsection{Feature Engineering}
+\label{sec:feature-engineering}
+TODO: MERGE THIS WITH YUE'S SECTION
 
 The relationship between \texttt{atemp} and \texttt{cnt} is non-linear, as can be seen from GRAPHREF. However, there seems to be a peak temperature for bike rentals at around PEAKTEMP. Hence, it would make sense to define a new variable corresponding to the (absolute value) difference between the current temperature and this ``ideal temperature''. Let \texttt{atempdiff} be defined as:
 \begin{verbatim}
@@ -745,6 +760,8 @@ Then, the relationship between \texttt{atemptdiff} and \texttt{cnt} is roughly l
 IDEM with \texttt{hum}, except the ``ideal humidity'' is at around 0.2.
 
 \section{Data Imputation}
+\label{sec:imputation}
+TODO: MERGE THIS WITH YUE"S SECTION
 
 We observed that some rows were missing in the hourly Bike Sharing datasets. In total, 165 observations were missing in 76 different days. We decided that it would be wise to impute the missing data, since it could help build a better regression model. Moreover, having no missing data would make the R programming significantly easier since the dataset structure would become more regular and hence much easier to work with.
 
@@ -791,7 +808,7 @@ Users can submit their predictions online and the RMSLE will be calculated
 Note that the testing data on Kaggle excludes the \texttt{cnt} field. As such, users must submit their predictions only to discover its RMSLE. However, the full data is present in the UCI's dataset and so, we can compute the RMSLE of our predictions by ourselves.
 
 
-\subsection{The two alternative problems on Kaggle}
+\subsubsection{The two alternative problems on Kaggle}
 
 Unfortunately, the problem of modeling and predicting bike rental demand as stated on Kaggle as two different interpretations.
 
@@ -800,17 +817,136 @@ Unfortunately, the problem of modeling and predicting bike rental demand as stat
 	\item Two
 \end{enumerate}
 
-\subsection{Our Model}
+\subsection{Experimental Design}
 
+In all the supervised learning models that follows, we used the dataset \texttt{bike.hifx}, which stands for Bike Hourly Imputated Feature eXtracted. In other words, we started with \texttt{bike.hourly}, applied data imputation (as described in Section~\ref{sec:imputation}) to obtain \texttt{bike.hi} and finally we performed feature engineering (Section~\ref{sec:feature-engineering}) to obtain \texttt{bike.hifx}.
+
+In all cases below, we kept the following features to in the training and testing sets:
+{\color{blue}
 \begin{verbatim}
 training.features <-  c("season","yr","mnth","hr","weekday","workingday",
-"weathersit","atempdiff","hum","windspeed")
-\end{verbatim}
+						"weathersit","atempdiff","hum","windspeed")
+\end{verbatim}}
 
+In each case, we split the training set and the dataset as specified in the Kaggle competition. That is, we defined the following variable
+{\color{blue}
+\begin{verbatim}
+is.training.day <- as.POSIXlt(bike.hfx$date)$mday <= 19
+\end{verbatim}}
+and split the data into a training and a testing dataset according to \texttt{is.training.day}.
+
+Finally, in each case (except for the random forest model), we actually built two models, identical in all respects, except that the first model was trained to perform a regression on the variable \texttt{casual}, while the second model performed a regression on the variable \texttt{registered}. Then, the predictions of each model were simply added to each other and the results became the predictions for \texttt{[cnt}.
+
+We found early one that building two models based on \texttt{casual} and \texttt{registered} always produced better results. This makes sense, since some amount of information is lost when considering only \texttt{cnt}, which is the sum of \texttt{casual} and \texttt{registered}. Moreover, the patterns of bike rentals for \texttt{casual} and for \texttt{registered} are very different, as can be seen from Figure~\ref{fig:compare-casual-registered}. Indeed, \texttt{registered} tend to be very regular and features shark spikes in the morning and after-noon in week days (rush hour), whereas \texttt{casual} is much less regular and more difficult to predict, as the variation in demand is much greater.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.98\textwidth]{figures/compare-casual-registered.png}
+	\caption{Comparison of {\color{blue}\texttt{registered}} (in blue) versus {\color{orange}\texttt{casual}} (in orange).}
+	\label{fig:compare-casual-registered}
+\end{figure}
+
+\subsubsection{Random Forests Regression}
+We started by building a random forest classifier. We used \texttt{ntrees=250}. This was the simplest model we investigated and it ran fairly quickly and produced the following results
+	
+\begin{table}[H]
+\centering
+\begin{tabular}{llr}
+	Classifier & \texttt{htree} & Testing RMSLE \\
+	\hline
+	Random Forest & 250 & 0.7911\\
+\end{tabular}
+\end{table}
+
+\subsubsection{Neural Networks Regression}
+
+Next, we trained neural networks with the \texttt{nnet} package. We trained the classifier on a grid of parameters, defined by the following two variables:
+{\color{blue}
+\begin{verbatim}
+params.h.size <- c(4,9,14,19,24,29,34,39)
+params.maxit <- c(100, 500, 1000, 2000)
+\end{verbatim}}
+
+The \texttt{delay} used was 0.0001.
+
+We printed the top 5 results, sorted by root-mean-squared logarithmic error (RMSLE) on the testing dataset.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{lllr}
+		Time (seconds) & Hidden layer \texttt{size} & \texttt{maxit} & Testing RMSLE \\
+		\hline
+		13.2 & 5 & 300 & 0.4293\\
+		50.1 & 20 & 300 & 0.4423\\
+		24.7 & 10 & 300 & 0.4443\\
+		138.1 & 40 & 300 & 0.4468\\
+		37.2 & 5 & 1000 & 0.4519\\
+	\end{tabular}
+\end{table}
+"
+\subsubsection{Ensemble of Neural Networks Regression}
+
+The \texttt{delay} used was 0.0001.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{lllr}
+		Hidden layer \texttt{size} & \texttt{maxit} & \texttt{repeats} (i.e. ensemble size) & Testing RMSLE \\
+		\hline
+		14 & 100 & 8 & 0.3984\\
+		4 & 2000 & 8 & 0.4028\\
+		9 & 1000 & 8 & 0.4036\\
+		9 & 500 & 8 & 0.4037\\
+		19 & 500 & 8 & 0.4040\\
+	\end{tabular}
+\end{table}
+
+152	new	Phil	
+0.39988
+1	Tue, 14 Apr 2015 23:48:47
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.98\textwidth]{figures/regression_pca_hsize14_maxit1000_numpcs41.png}
+	\caption{Regression using \texttt{avvNNet} and PCA with 41 components (out of 51).}
+\end{figure}
+
+Finally, we were able to improve the results a little bit more by applying PCA and discarding some of the principal components accounting for the least variation in the data. In total, our dataset has 51 features (when accounting for dummy variables introduced by categorical features that have more than 2 categories). The best result was obtained with 
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{llllr}
+		Hidden layer \texttt{size} & \texttt{maxit} & \texttt{repeats} & \# of principal components & Testing RMSLE \\
+		\hline
+		14 & 1000 & 8 & 41 & 0.3917\\
+		14 & 1000 & 8 & 38 & 0.3924\\
+		9 & 1000 & 8 & 41 & 0.3938\\
+		9 & 1000 & 8 & 38 & 0.4097\\
+		9 & 1000 & 8 & 33 & 0.4390\\
+	\end{tabular}
+\end{table}
+
+111	new	Phil	
+0.39172
+2	Sat, 18 Apr 2015 22:18:33
+
+
+\subsubsection{Recurrent Neural Networks Regression}
+Some recurrent neural networks are particularly well-suited to our task. Indeed, recurrent neural networks are neural networks where connection between neurons are allowed to go backwards. In particular, \emph{Elman neural networks} have all of the neurons in their hidden layer connected pair-wise to a set of \emph{context units}. The context units are also connected pair-wise back to the same hidden neurons, forming a collection of cycles -- one for each neuron in the hidden layer. This allows the Elman neural network to "remember" the state of the output units from previous data
+
+
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{llr}
+		Hidden layer \texttt{size} & \texttt{maxit} & Testing RMSLE \\
+		\hline
+		0 & 0 & 0\\
+	\end{tabular}
+\end{table}
 \section{Conclusion and Further Work}
 	\label{sec:conclusion}
-	
-	
 	
 \begin{thebibliography}{9}
 		\bibitem{dataset}
