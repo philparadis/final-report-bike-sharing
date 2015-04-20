@@ -3,6 +3,23 @@ source("bike-features-extract.R")
 library(FactoMineR)
 
 #######################################################
+# Calculate cumulative proportion of variance explained
+#######################################################
+# This function computes how many top PCA components are
+# necessary to explain a variance of at least 'min.variance'
+how.many.pcs.for.variance <- function (pca, n.components, min.variance)
+{
+  for (pc.index in 1:n.components) {
+    cumul <- sum(pca$sdev[1:pc.index]^2) / sum(pca$sdev^2)
+    if (cumul >= min.variance) {
+      return(pc.index)
+    }
+  }
+  return(-1)
+}
+
+
+#######################################################
 # PCA
 #######################################################
 
@@ -24,6 +41,7 @@ m.cnt <- data.frame(model.matrix(
   data = bike.hfx
 ))
 
+# Compute PCA
 pca.casual <- prcomp(m.casual[2:ncol(m.casual)], center=TRUE, scale.=TRUE)
 pca.registered <- prcomp(m.registered[2:ncol(m.registered)], center=TRUE, scale.=TRUE)
 pca.cnt <- prcomp(m.cnt[2:ncol(m.cnt)], center=TRUE, scale.=TRUE)
@@ -31,84 +49,64 @@ pca.cnt <- prcomp(m.cnt[2:ncol(m.cnt)], center=TRUE, scale.=TRUE)
 # FAMD
 famd <- FAMD(bike.hourly)
 
-#######################################################
-# Calculate cumulative proportion of variance explained
-#######################################################
-# This function computes how many top PCA components are
-# necessary to explain a variance of at least 'min.variance'
-how.many.pcs.for.variance <- function (pca, n.components, min.variance)
-{
-  for (pc.index in 1:n.components) {
-    cumul <- sum(pca$sdev[1:pc.index]^2) / sum(pca$sdev^2)
-    if (cumul >= min.variance) {
-      return(pc.index)
-    }
-  }
-  return(-1)
-}
-
-# Call the above function
+# Get number of PCs to keep for 80% variance
 min.var <- 0.8
-cat(paste("The first", how.many.pcs.for.variance(pca, ncol(bike.hourly.prepared), min.var),
+cat(paste("The first", how.many.pcs.for.variance(pca.casual, ncol(m.casual[2:ncol(m.casual)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+cat(paste("The first", how.many.pcs.for.variance(pca.registered, ncol(m.registered[2:ncol(m.registered)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+cat(paste("The first", how.many.pcs.for.variance(pca.cnt, ncol(m.cnt[2:ncol(m.cnt)]), min.var),
           "principal components are required to explain",
           min.var*100.0, "% of the total variance.\n"))
 
-# 
-# #######################################################
-# # Perform PCA
-# #######################################################
-# # Perform PCA analysis on each training set independently
-# # i.e. on each digit independently
-# pc.digits <- {}
-# prep.out("figures/digits-pca.pdf", height=4)
-# par(mfrow=c(2,5), mar=c(4.1,2.1, 2.1, 1.1))
-# for (i in 0:9) {
-#   # Important: 'center' is set to FALSE. This makes analysis
-#   # much simpler, especially since our data is already fairly well
-#   # centered.
-#   pc.digits[[i+1]] <- prcomp(d.digits[[i+1]], center = FALSE)
-#   plot(pc.digits[[i+1]], col = heat.colors(10), main = i)
-#   
-#   # Uncomment the following to see a summary of the PCA results...
-#   # print(summary(pc.digits[[i+1]]))
-# }
-# dev.off()
-# 
-# #######################################################
-# # Calculate cumulative proportion of variance explained
-# #######################################################
-# # This function computes how many top PCA components are
-# # necessary to explain a variance of at least 'min.variance'
-# how.many.pcs.for.variance <- function (min.variance)
-# {
-#   results <- matrix(NA, 2, 10)
-#   for (i in 0:9) {
-#     for (pc.index in 1:256) {
-#       cumul <- sum(pc.digits[[i+1]]$sdev[1:pc.index]^2) /
-#         sum(pc.digits[[i+1]]$sdev^2)
-#       if (cumul >= min.variance) {
-#         results[,i+1] <- c(i, pc.index)
-#         break
-#       }
-#     }
-#   }
-#   
-#   for (i in 0:9) {
-#     print(paste("The first", results[2,i+1],
-#                 "principal components of the digit",
-#                 i, "explain", cumul, "% of the total variance."))
-#   }
-#   results
-# }
-# 
-# # Call the above function
-# (req.pcs <- how.many.pcs.for.variance(0.95))
-# 
-# # Produce LaTeX table describing this result
-# row.names(req.pcs) <- c("Digit", "# of Components")
-# xres <- xtable(req.pcs)
-# print(xres, include.colnames = FALSE)
-# 
+#######################################################
+# PCA (Predictor variables ONLY)
+#######################################################
+
+m.predictors <- data.frame(model.matrix( 
+  ~ season + yr + mnth + hr + weekday + workingday +
+    weathersit + atempdiff + humdiff + windspeed,
+  data = bike.hfx
+))
+
+# Compute PCA
+pca.predictors <- prcomp(m.predictors[2:ncol(m.predictors)], center=TRUE, scale.=TRUE)
+
+# Get number of PCs to keep for 60% variance
+min.var <- 0.5
+cat(paste("The first", how.many.pcs.for.variance(pca.predictors, ncol(m.predictors[2:ncol(m.predictors)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+# Get number of PCs to keep for 60% variance
+min.var <- 0.6
+cat(paste("The first", how.many.pcs.for.variance(pca.predictors, ncol(m.predictors[2:ncol(m.predictors)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+# Get number of PCs to keep for 70% variance
+min.var <- 0.7
+cat(paste("The first", how.many.pcs.for.variance(pca.predictors, ncol(m.predictors[2:ncol(m.predictors)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+# Get number of PCs to keep for 95% variance
+min.var <- 0.8
+cat(paste("The first", how.many.pcs.for.variance(pca.predictors, ncol(m.predictors[2:ncol(m.predictors)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+# Get number of PCs to keep for 90% variance
+min.var <- 0.9
+cat(paste("The first", how.many.pcs.for.variance(pca.predictors, ncol(m.predictors[2:ncol(m.predictors)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+# Get number of PCs to keep for 95% variance
+min.var <- 0.95
+cat(paste("The first", how.many.pcs.for.variance(pca.predictors, ncol(m.predictors[2:ncol(m.predictors)]), min.var),
+          "principal components are required to explain",
+          min.var*100.0, "% of the total variance.\n"))
+
+
+
 # ####################################################
 # # Examine the PCA components one by one and
 # # investigate what abstract 'features' they measure

@@ -78,11 +78,13 @@ run.rf.hfx <- function ()
   
   ### COMPUTE ERROR
   # Compute RMSE and RMSLE
-  rf.rmse <- compute.rmse(pred, actual$cnt)
-  rf.rmse <- compute.rmse(pred, actual$cnt)
-  rf.rmsle <- compute.rmsle(pred, actual$cnt)
+  rf.rmse <- compute.rmse(pred, actual.cnt)
+  rf.rmse <- compute.rmse(pred, actual.cnt)
+  rf.rmsle <- compute.rmsle(pred, actual.cnt)
   cat(paste0("RMSE = ", rf.rmse, "\n"))
   cat(paste0("RMSLE = ", rf.rmsle, "\n"))
+  
+  rf.rmsle
 }
 
 run.nnet.hfx <- function (h.size=25, maxit=500, decay=0.001)
@@ -185,35 +187,6 @@ run.nnet.hfx <- function (h.size=25, maxit=500, decay=0.001)
   rf.rmsle
 }
 
-# RUN EXPERIMENT
-# TODO: Move this into its own file...
-
-#params.h.size <- c(5, 10, 15, 20, 25, 30, 35, 40, 50, 65, 90)
-#params.maxit <- c(100, 300, 1000, 2500, 5000)
-params.h.size <- c(4,6,9,13,17,19,22,24)
-params.maxit <- c(300, 600)
-params.decay <- c(0.1, 0.01, 0.001, 0.0001)
-
-results.log <- c()
-for (maxit in params.maxit) {
-  for (h.size in params.h.size) {
-    for (decay in params.decay) {
-      seed <- maxit + h.size
-      set.seed(10000+seed)
-      runtime <- system.time(rmsle <- run.nnet.hfx(h.size, maxit, decay))[[1]]
-      res <- data.frame(datetime=Sys.time(), runtime=runtime,
-                        seed=seed, h.size=h.size, maxit=maxit, decay=decay, rmsle=rmsle)
-      results.log <- rbind(results.log, res)
-      write.csv(results.log, "results3.log")
-      write.csv(bike.results[!is.training.day, "pred"],
-                paste0("pred_s", seed))
-    }
-  }
-}
-
-
-library(doMC)
-registerDoMC(cores=8)
 
 run.avNNet.hfx <- function (h.size=25, maxit=500, decay=0.001, repeats=8)
 {
@@ -318,30 +291,6 @@ run.avNNet.hfx <- function (h.size=25, maxit=500, decay=0.001, repeats=8)
   bike.results <<- bike.results
   rf.rmsle
 }
-
-params.h.size <- c(4,9,14,19,24,29,34,39)
-params.maxit <- c(100, 500, 1000, 2000)
-params.decay <- c(0.0001)
-
-repeats <- 8
-results.log <- c()
-for (maxit in params.maxit) {
-  for (h.size in params.h.size) {
-    for (decay in params.decay) {
-      seed <- maxit + h.size + decay*10000 + repeats*100000
-      set.seed(10000000+seed)
-      cat(paste0("h.size = ", h.size, ", maxit = ", maxit, ", decay = ", decay, "\n"))
-      runtime <- system.time(rmsle <- run.avNNet.hfx(h.size, maxit, decay, repeats))[[1]]
-      res <- data.frame(datetime=Sys.time(), runtime=runtime,
-                        seed=seed, h.size=h.size, maxit=maxit, decay=decay, repeats=repeats, rmsle=rmsle)
-      results.log <- rbind(results.log, res)
-      write.csv(results.log, "results_avnnet_1.log")
-      write.csv(bike.results[!is.training.day, "pred"],
-                paste0("pred_s", seed))
-    }
-  }
-}
-
 
 run.RSNNS <- function ()
 {
