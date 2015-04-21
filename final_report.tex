@@ -56,12 +56,15 @@
 	\maketitle
 	
 	\tableofcontents
-	\newpage
 	\section*{Acknowledgements}
+	We would like to express our deepest appreciation to all those who provided us the possibility to complete this report.  A special gratitude is given to our Professor Shirley Mills for the excellent course in data mining, introducing us to R, and giving us an extension to finish the project. 
 	
-	
+	In this project, Yue Dong is mainly responsible for the data visualization, association rule mining, clustering and outlier detections. Philippe Paradis is mainly responsible for the PCA, data imputation, and supervised learning.  
+\newpage 
 	\begin{abstract}                % ~350 words max
-		
+	The goal of our project is to predict the number of bike rentals for the bikesharing system in Washington D.C.,
+	as part of a Kaggle competition. Through our project, we identified several important unsupervised learning techniques that helped us create more predictive features and data instances. We then trained and tuned several different models  with our data, such as the random forests and various types of neural networks. In the end, we found that neural networks based models perform well on the bikeshare data; in particular, using the PCA following by avvNNet (ensemble of neural networks) performs the best on
+	the bikeshare data, which made us the rank 111 on the leaderboard in Kaggle competition for this dataset.	
 		
 	\end{abstract}
 	
@@ -71,80 +74,55 @@
 	\section{Introduction}
 	\label{sec:introduction}
 
-        Bicycle sharing systems have seen have seen a surge in popularity throughout the world since the mid-2000s. For example, Bixi was launched in 2008 in Montreal and is now the largest bike sharing system in Canada. It was quickly followed by Capital Bixi in Ottawa/Gatineau in June 2009. There are now more than 700 cities worldwide with bicycle sharing systems! Part of the reason for the sudden large-scale adoption of those systems is the advance in technology, lowering initial costs and increasing profit margins for companies. Most important of all, advances in information technology significantly improved the viability of this type of business. Modern technology allows companies to automate bike rentals, drop-offs, reservations and fleet tracking. It also makes it more convenient to the user and deters theft by requiring large credit card deposits. Bla bla.
+Bicycle sharing systems have seen a surge in popularity throughout the world since the mid-2000s. For example, Bixi was launched in 2008 in Montreal and is now the largest bike sharing system in Canada. It was quickly followed by Capital Bixi in Ottawa/Gatineau in June 2009. There are now more than 700 cities worldwide with bicycle sharing systems. 
+        
+Part of the reason for the sudden large-scale adoption of those systems is the advance in technology, lowering initial costs and increasing profit margins for companies. Most important of all, advances in information technology significantly improved the viability of this type of business. Modern technology allows companies to automate bike rentals, drop-offs, reservations and fleet tracking. It also makes it more convenient to the user and deters theft by requiring large credit card deposits.
 
-Since bike sharing systems are all automated, tons of very detailed data has been collected about the usage of those systems.
+Since bike sharing systems are all automated, tons of very detailed data has been collected about the usage of those systems. In particular, many organisations operating bike sharing systems are public organisations, such as cities, or private-public partnerships. As a consequence, those organisations tend to frequently make part of their data available to the public.
 
-In particular, many organisations operating bike sharing systems are public organisations, such as cities, or private-public partnerships. As a consequence, those organisations tend to frequently make part of their data available to the public!
+In this project, we used such a detailed dataset of the city bikeshare system in Washington D.C. The full dataset is available at the UCI repository \cite{dataset} while part of the dataset is also available through the Kaggle competition. In our project, we focused on predicting the number of bike rentals for the bikesharing system in Washington D.C. while using the dataset from the Kaggle competition.
 
-Part of the reason for the success and 
-        In this project, we investigate a modern dataset rel the usage of city bike sharing systems
+Although the bike sharing dataset is relatively new (2013), there are several papers published on this dataset. Some papers use this dataset for the events detection, such as Gama's paper \cite{dataset} proposed to use a combination of detectors with background knowledge to improve the detection. But the majority of the papers use this dataset for regression to predict the bike rental demand: Jimmy's paper proposed to use ensemble of Conditional Inference Trees (CTree); Datta's master's thesis \cite{master} proposed to use ensemble of decision trees and random forests; Giot's paper \cite{romain} proposed to augment the dataset by 24 columns in order to predict the bike rental demand 24 hours in advance. Based on these papers, we decided to try ensemble of neural networks and compare the performance with tree-based algorithms. 
+
+The rest of the paper are organized as follows. In section 2, we discuss the dataset and two approaches we used to explore the data: visualization and association rule mining. In section 3,  We talk about the unsupervised learning used in this project. In section 4,  we discuss the supervised learning  methods we used for the regression.
 	
-	Philippe's introduction draft:
-	\begin{enumerate}
-		\item Load data
-			\item Basic data pre-processing
-		\item Imputation (Numeric variables, categorical variables, analysis)
-		\item Visualization (most of it Yue is in charge, but I performed visualization of imputations as well as visualization for the each day in the entire 2 years's worth of data for casual, registered and cnt...)
-		\item Data augmentation: add previous X hours as columns... for example, add "cnt.1hrago", ..., "cnt.24hrago" (work in progress)
-		\item Features Engineering:
-		\begin{itemize}
-			\item Added a "bad rows" column, where rows with poor imputation results are flagged and discarded from the training phase)
-			\item Added "special events", such as Christmas, where we expect lower demand for bike rental
-			\item Designated some non-holiday days as being holidays anyway. For example, whenever a Thursday is a holiday, then the Friday right after it will be designated a holiday too. Whenever a Tuesday is a holiday, then the Monday right before it will be designated as a holiday too.
-			\item Transform \texttt{atemp} into \texttt{atempdiff} (i.e. the distance between the current apparent temperature and the ``ideal'' apparent temperature)
-			\item Transform \texttt{hum} into \texttt{humdiff} (similar idea)
-			item Auxiliary datasets (work in progress...)
-		\end{itemize}
-		\item Did my own version of association rules mining, including using the hyperlift measure (found nothing interesting)
-		\item Supervised learning:
-		\begin{itemize}
-			\item Built a Random Forest classifier (fast, average results)
-			\item Built a neural network classifier using \texttt{nnet} (moderately slow, good results)
-			\item Used the following features:
-			\begin{verbatim}
-			c("season","yr","mnth","hr","weekday","workingday",
-			"weathersit","atempdiff","hum","windspeed")
-			\end{itemize}
-			\end{verbatim}
-			\item Performed a grid search to find ideal parameter of neural network
-			\item Ranked in the top 150 on Kaggle
-			\item Noticed that my model tended to overfit and that better scores would frequently be obtained when using very small number of epochs
-			\item Switched to \texttt{avNNet}, a parallel ensemble method for neural network
-			\item Speed remained the same, results improved considerably
-			\item Rank position on Kaggle yet to be determined
-			\item Attempted a Deep Neural Network model with the package \texttt{h2o}. The package is incredibly fast and very easy to interface with, unfortunately I found the neural network model to be extremely unstable. I could not obtain better results than with the simpler single-hidden layer neural networks above.
-			\item Attempted to use the \texttt{RSNNS} package to train a Jordan neural network, which is a type of recurrent neural network designed specifically to perform well with time series. Unfortunately, the package would always crash R and I never managed to get it to work.
-		\end{itemize}
-	\end{enumerate}
-	
-	\subsection{Questions}
-		What relationships do we expect to see in the data?
-		\begin{itemize}
-			\item Variation in bike rentals based on hour of the day
-			\item Different bike rental patterns on the weekends versus regular weekdays
-			\item Different  bike rental patterns on holidays versus non-holidays
-			\item Variation in bike rentals based on temperature
-			\item Variation in bike rentals based on weather condition
-			\item No idea about effects of humidity
-			\item Variation in bike rentals based on wind speed
-		\end{itemize}
-		
-		What kind of relationships do we expect to see in the data?
-		\begin{itemize}
-			\item On regular weekdays, spike in traffic during morning and afternoon rush hours
-			\item Typically, higher bike rental volumes during the day and lower during the night
-			\item In other words, highly non-linear relationship between bike rentals and datetime
-			\item Roughly linear variation between bike rentals and temperature (although very high summer temperatures could lead to reduced bike rental volumes)
-			\item 
-		\end{itemize}
-		
-		%\subsection{Missing values}
-		
-		- What could possibly explains the missing values that we see?
-		There is clearly a pattern in the missing values. Most of those happen at the same time at night.
-		Also, the bike count values tend to change and be much smaller around missing values. Why is that?
-		
+%	Philippe's introduction draft:
+%	\begin{enumerate}
+%		\item Load data
+%			\item Basic data pre-processing
+%		\item Imputation (Numeric variables, categorical variables, analysis)
+%		\item Visualization (most of it Yue is in charge, but I performed visualization of imputations as well as visualization for the each day in the entire 2 years's worth of data for casual, registered and cnt...)
+%		\item Data augmentation: add previous X hours as columns... for example, add "cnt.1hrago", ..., "cnt.24hrago" (work in progress)
+%		\item Features Engineering:
+%		\begin{itemize}
+%			\item Added a "bad rows" column, where rows with poor imputation results are flagged and discarded from the training phase)
+%			\item Added "special events", such as Christmas, where we expect lower demand for bike rental
+%			\item Designated some non-holiday days as being holidays anyway. For example, whenever a Thursday is a holiday, then the Friday right after it will be designated a holiday too. Whenever a Tuesday is a holiday, then the Monday right before it will be designated as a holiday too.
+%			\item Transform \texttt{atemp} into \texttt{atempdiff} (i.e. the distance between the current apparent temperature and the ``ideal'' apparent temperature)
+%			\item Transform \texttt{hum} into \texttt{humdiff} (similar idea)
+%			item Auxiliary datasets (work in progress...)
+%		\end{itemize}
+%		\item Did my own version of association rules mining, including using the hyperlift measure (found nothing interesting)
+%		\item Supervised learning:
+%		\begin{itemize}
+%			\item Built a Random Forest classifier (fast, average results)
+%			\item Built a neural network classifier using \texttt{nnet} (moderately slow, good results)
+%			\item Used the following features:
+%			\begin{verbatim}
+%			c("season","yr","mnth","hr","weekday","workingday",
+%			"weathersit","atempdiff","hum","windspeed")
+%			\end{itemize}
+%			\end{verbatim}
+%			\item Performed a grid search to find ideal parameter of neural network
+%			\item Ranked in the top 150 on Kaggle
+%			\item Noticed that my model tended to overfit and that better scores would frequently be obtained when using very small number of epochs
+%			\item Switched to \texttt{avNNet}, a parallel ensemble method for neural network
+%			\item Speed remained the same, results improved considerably
+%%			\item Rank position on Kaggle yet to be determined
+%			\item Attempted a Deep Neural Network model with the package \texttt{h2o}. The package is incredibly fast and very easy to interface with, unfortunately I found the neural network model to be extremely unstable. I could not obtain better results than with the simpler single-hidden layer neural networks above.
+%			\item Attempted to use the \texttt{RSNNS} package to train a Jordan neural network, which is a type of recurrent neural network designed specifically to perform well with time series. Unfortunately, the package would always crash R and I never managed to get it to work.
+%		\end{itemize}
+%	\end{enumerate}
 	
 	\section{Dataset \& Data exploration}
 	\subsection{Dataset}
@@ -190,11 +168,11 @@ Part of the reason for the success and
 		\label{fig:scatterplot}
 	\end{figure}
 	
-	As we can see from Figure \ref{fig:scatterplot}, there are 0.99 correlation between temp and atemp, 0.95 correlation between registered and cnt, and 0.83 correlation between season and mnth.
+	As we can see from Figure \ref{fig:scatterplot}, there are 0.99 correlation between \texttt{temp} and \texttt{atemp}, 0.95 correlation between \texttt{registered} and \texttt{cnt}, and 0.83 correlation between \texttt{season} and \texttt{mnth}.
 	
 	High correlation between two variables means that as one variable rises or falls, the other variable rises or falls as well. Since we don't want attributes with high correlation in our dataset, we can pick one attribute from each pair with high correlation.
 	
-	On the other side, attributes with high correlations to cnt can be good predictors for the bike rental counts. From the last column of Figure \ref{fig:scatterplot}, we obtained a list of attributes with high correlations to cnt in decreasing order: 
+	On the other side, attributes with high correlations to \texttt{cnt} can be good predictors for the bike rental counts. From the last column of Figure \ref{fig:scatterplot}, we obtained a list of attributes with high correlations to \texttt{cnt} in decreasing order: 
 	\begin{table}[H]
 		\centering
 		\begin{tabular}{| l | l | l | l | l | l|}
@@ -205,7 +183,7 @@ Part of the reason for the success and
 			\hline
 			%	registered~ &
 		\end{tabular}
-		\caption{Correlations to cnt in decreasing order}
+		\caption{Correlations to \texttt{cnt} in decreasing order}
 	\end{table}
 	
     To further explore the correlations between variables, we plotted a heat map with hierarchical clustering. 
@@ -214,14 +192,14 @@ Part of the reason for the success and
 		\caption{Heat map of the bike sharing (daily) dataset}
 		\label{fig:correlation}
 	\end{figure}
-	From Figure \ref{fig:correlation}, we found that workingday has a negative correlation with casual users (-0.52) which corresponds to the intuition that more casual users go out biking when it is not workingday. 
+	From Figure \ref{fig:correlation}, we found that \texttt{workingday} has a negative correlation with \texttt{casual} (-0.52) which corresponds to the intuition that more casual users go out biking when it is not workingday. 
 	
-	Moreover, the hierarchical clustering grouped atemp and temp, cnt and registered, season and month, hum and weathersit, weekday and workingday together in the lowest level.  If we want two clusters from the hierarchical clustering, we will get atemp, temp, casual, cnt, registered, season, mnth, yr as one cluster; and hum, weathersit, weekday, workingday, holiday, windspeed as the other cluster.
+	Moreover, the hierarchical clustering grouped \texttt{atemp} and \texttt{temp}, \texttt{cnt} and \texttt{registered}, \texttt{season} and \texttt{mnth}, \texttt{hum} and \texttt{weathersit}, \texttt{weekday} and \texttt{workingday} together in the lowest level.  If we want two clusters from the hierarchical clustering, we will get \texttt{atemp, temp, casual, cnt, registered, season, mnth, yr} as one cluster; and \texttt{hum, weathersit, weekday, workingday, holiday, windspeed} as the other cluster.
 	
-	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) temp/weathersit to cnt, 2) hr/workingday (weekday and non-holiday) to cnt,  3)season/mnth to cnt, 4) registered to casual. 
+	These correlations give us an insight about the dataset. 	Based on the above observations, we decided to further investigate on the following relationships: 1) \texttt{temp/weathersit} to \texttt{cnt}, 2) \texttt{hr/workingday} (weekday and non-holiday) to \texttt{cnt},  3)\texttt{season/mnth} to \texttt{cnt}, 4) \texttt{registered} to \texttt{casual}. 
 	
 	
-	\paragraph*{Explore 1. temp/weathersit to cnt} Most likely, temperature and weather influence the bike demand. We thus plotted temp against daily cnt with weather information:
+	\paragraph*{Explore 1. temp/weathersit to cnt} Most likely, temperature and weather influence the bike demand. We thus plotted \texttt{temp} against daily \texttt{cnt} with weather information:
 	\begin{figure}[H]
 		\centering
 		\includegraphics[scale=.85]{figures/temp_counts.png}
@@ -229,7 +207,7 @@ Part of the reason for the success and
 	
 	The rental bike counts increases when the temperature increases. With the same temperature, the better the weather is, the more bike rental counts are.
 	
-	To compare the effects of feeling temperature and temperature on bike rental demand, we plotted atemp against the average cnt and temp against the average cnt:
+	To compare the effects of feeling temperature and temperature on bike rental demand, we plotted \texttt{atemp} against the average \texttt{cnt} and \texttt{temp} against the average \texttt{cnt}:
 	
 	\begin{figure}[H]
 		\centering
@@ -246,7 +224,7 @@ Part of the reason for the success and
 			\label{fig:temp}
 		\end{minipage}
 	\end{figure}
-   We can confirm the high linear correlation between temp and cnt from Figure \ref{fig:temp} since the plot is most linear. On the other hand, we can see from Figure \ref{fig:atemp} that the bike rental demand is the highest at atemp$=0.7$, it start to decrease when atemp exceeds 0.7. 
+   We can confirm the high linear correlation between \texttt{temp }and \texttt{cnt} from Figure \ref{fig:temp} since the plot is most linear. On the other hand, we can see from Figure \ref{fig:atemp} that the bike rental demand is the highest at \texttt{atemp}$=0.7$, it start to decrease when \texttt{atemp} exceeds 0.7. 
 	
 	\paragraph*{Explore 2. hr/workingday (weekday and non-holiday) to cnt} The hourly bike rental demand probably shows a different pattern on weekdays and weekends. Many people rent bikes to work on weekdays, and other people rent bikes for leisure on weekends. To investigate if this affects the bike rental demand, we first plotted the counts on a typical week:
 	\begin{figure}[H]
@@ -287,7 +265,7 @@ Part of the reason for the success and
 	%From this, a bold guess is that more registered people rent on workingdays, and more casual users rent on non-working days. We confirmed this by the following conditional plot.
 	
 	
-	\paragraph*{Explore 3. mnth/season to cnt} Let’s see if bike rental demand depending on the month\ season. To see the relationship of month and bike rental counts, we plotted a boxplot: 
+	\paragraph*{Explore 3. mnth/season to cnt} Let’s see if bike rental demand depending on the \texttt{mnth}/ \texttt{season}. To see the relationship of month and bike rental counts, we plotted a boxplot: 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=\linewidth]{figures/month_count.png}
@@ -302,7 +280,7 @@ Part of the reason for the success and
 	\end{figure}
 	The bike rentals are the highest in the month from May to October, and the patterns of hourly rental are similar in these months with  the afternoon peak higher than the morning peak. The difference between the afternoon peak and the morning peak might due to the casual users going out biking in the afternoon during the summer.  From November to February, the bike rentals are low and the morning peak has similar counts as that of the afternoon peak. 
 	
-	Next, we investigated the relationship of season with bike rental counts. We first plotted a coplot of hourly counts conditioned on season:
+	Next, we investigated the relationship of \texttt{season} with bike rental counts. We first plotted a coplot of hourly counts conditioned on \texttt{season}:
 	
 		\begin{figure}[H]
 			\centering
@@ -356,7 +334,7 @@ Part of the reason for the success and
     %It seems that month will give more accurate information than season in the prediction. Since these two attributes are highly correlated, we will keep month in our experiment.	
 		
 	\paragraph*{Explore 4. workingday to registered/casual}
-	We found in Explore 3 that casual users behave differently than registered users in different seasons. To see if workingdays contribute to the difference, we plotted a coplot of hourly counts conditioned on season with colored workingdays.
+	We found in Explore 3 that casual users behave differently than registered users in different seasons. To see if workingdays contribute to the difference, we plotted a coplot of hourly counts conditioned on \texttt{season} with colored workingdays.
 	 \begin{figure}[H]
 	 	\centering
 	 	\begin{minipage}{.5\textwidth}
@@ -373,14 +351,14 @@ Part of the reason for the success and
 	 	\end{minipage}
 	 \end{figure}
 	 From Figure \ref{fig:registered-cnt} and Figure \ref{fig:casual-cnt}, we can see that registered users and casual users behave differently on workingdays and non-workingdays. More registered users rent bike on workingdays, and more casual users rent bike on non-working days.
-	 A coplot on registered against casual conditioned on the month can explain this difference even better:
+	 A coplot on \texttt{registered} against \texttt{casual} conditioned on the month can explain this difference even better:
 	 	\begin{figure}[H]
 	 		\centering
 	 		\includegraphics[scale=.9]{figures/coplot_registered_casual_mnth.png}
 	 		\caption{Coplot of registered-casual$|$ mnth colored on workingday}
 	 		\label{fig:registered_casual}
 	 	\end{figure}
-	In Figure \ref{fig:registered_casual}, registered and casual almost have a linear correlation on the non-workingday (black dots). But there is no strong linear correlation between the two on workingdays(red dots). This suggests us that building separated models for registered and casual on workingday and non-workingday can improve the prediction of the total counts .
+	In Figure \ref{fig:registered_casual}, \texttt{registered} and \texttt{casual} almost have a linear correlation on the non-workingday (black dots). But there is no strong linear correlation between the two on workingdays(red dots). This suggests us that building separated models for \texttt{registered} and \texttt{casual} on \texttt{workingday} and non-\texttt{workingday} can improve the prediction of the total counts .
 	
 	To further explore the difference between casual and registered users, we plotted hourly bike rental counts for casual users and for registered users in a daily basis for the whole dataset. Here are some interesting findings:
 	\begin{enumerate}
@@ -455,12 +433,12 @@ Part of the reason for the success and
 			 	\begin{minipage}{.5\textwidth}
 			 		\centering
 			 		\includegraphics[width=\linewidth]{figures/registered_christmas_2011.png}
-			 		\caption{registered chritmas 2011}
+			 		\caption{registered Chritmas 2011}
 			 	\end{minipage}%
 			 	\begin{minipage}{.5\textwidth}
 			 		\centering
 			 		\includegraphics[width=\linewidth]{figures/registered_christmas_2012.png}
-			 		\caption{registered christmas 2012}
+			 		\caption{registered Christmas 2012}
 			 		%\label{fig:casual-cnt}
 			 	\end{minipage}
 			 \end{figure}
@@ -472,13 +450,13 @@ Part of the reason for the success and
 	\subsection{Association Rule Mining}	
 	To investigate more about the dataset, we did an association rule mining. The bike sharing dataset contains a mixture of categorical and numeric attributes and therefore need some preparation before using apriori algorithm on it. Here are the steps for our experiment in association rule mining:
     \begin{enumerate}
-    	\item We fist removed the unrelated features: instant, dteday.
-    	\item We then mapped the seven remaining continuous attributes (temp, atemp, hum, windspeed, registered, casual, and cnt) to ordinal attributes by building suitable categories.
+    	\item We fist removed the unrelated features: \texttt{instant}, \texttt{dteday}.
+    	\item We then mapped the seven remaining continuous attributes \texttt{(temp, atemp, hum, windspeed, registered, casual, and cnt)} to ordinal attributes by building suitable categories.
     	\item Next, we coerced the data set to transactions (a binary incidence matrix).
     	\item Finally, we ran Apriori algorithm with support = 0.01, confidence = 0.3.
     \end{enumerate}
 	
-	After the rule mining, we sorted the rules by lift with "cnt=high" in the right hand side. Here are the top 5 rules: \color{blue}
+	After the rule mining, we sorted the rules by lift with "\texttt{cnt}=high" in the right hand side. Here are the top 5 rules: \color{blue}
 	\begin{verbatim}
 	   lhs                   rhs           support confidence     lift
 	   1  {weekday=Sat,                                                  
@@ -494,7 +472,7 @@ Part of the reason for the success and
 	\end{verbatim} \color{black}
     The first rule tells us that when it is Saturday and bike rentals from casual users are high, there will be a large chance that total bike rentals are high.
     
-    We also sorted the rules by lift with "registered=high" on the right hand side. The following are the top 5 rules: \color{blue}
+    We also sorted the rules by lift with "\texttt{registered}=high" on the right hand side. The following are the top 5 rules: \color{blue}
 	\begin{verbatim}
 	   lhs                rhs                  support confidence     lift
 	   1  {weekday=Fri,                                                      
@@ -508,9 +486,9 @@ Part of the reason for the success and
 	   5  {casual=low,                                                       
 	   cnt=high}      => {registered=high} 0.12859097          1 3.673367
 	\end{verbatim}\color{black}
-	in general, these five rules tell us that when it is weekdays, registered is high.
+	in general, these five rules tell us that when it is weekdays, \texttt{registered} is high.
 	
-	 Finally, we obtained the following top 5 rules by sorting with lift and with "casual=high" on the right hand side: \color{blue}
+	 Finally, we obtained the following top 5 rules by sorting with lift and with "\texttt{casual}=high" on the right hand side: \color{blue}
 	\begin{verbatim}
 	   lhs                   rhs              support confidence     lift
 	   1  {season=summer,                                                   
@@ -533,9 +511,9 @@ Part of the reason for the success and
 	   weathersit=clear,                                                
 	   cnt=high}         => {casual=high} 0.01231190          1 16.61364
 	\end{verbatim}\color{black}
-	Here, we can see that when it is summer weekends and cnt is high, there will be a very large chance that casual users' bike rentals are high.  
+	Here, we can see that when it is summer weekends and \texttt{cnt} is high, there will be a very large chance that casual users' bike rentals are high.  
 	
-	Rule 4 attracted our attention since it indicates that ``yr=2012'' can help to predict high bike rental demand from casual users. We therefore plotted hourly casual, registered, and cnt conditioned on yr to compare the difference. 
+	Rule 4 attracted our attention since it indicates that ``\texttt{yr}=2012'' can help to predict high bike rental demand from casual users. We therefore plotted hourly \texttt{casual}, \texttt{registered}, and \texttt{cnt} conditioned on \texttt{yr} to compare the difference. 
 	
 	\begin{figure}[H]
 		\centering
@@ -558,14 +536,10 @@ Part of the reason for the success and
 			\includegraphics[width=\linewidth]{figures/cnt_year.png}
 			\caption{Coplot of cnt-hr$|$ yr}
 		\end{figure}
-    From the above figures, the bike rental demands from the registered users and the casual users both increase from 2011 to 2012 without changing on the underlying pattern of the rental. Therefore, yr is also a strong predictor for the total counts.
+    From the above figures, the bike rental demands from the registered users and the casual users both increase from 2011 to 2012 without changing on the underlying pattern of the rental. Therefore, \texttt{yr} is also a strong predictor for the total counts.
     
     In summary, the association rule mining didn't give us too much more information about the dataset. But it confirmed that casual and registered users behave differently. In addition, it helped us to realize year is also a strong predictor for the bike rental demand. 
-    
-    \section{Data Pre-processing}
-    \subsection{Basic Pre-Processing}
-    \subsection{Data Imputation}
-    
+       
 	\section{Unsupervised Learning}
 	\subsection{Dimensionality Reduction: Features Selection}
 	The first step in performing dimensionality reduction is simply to apply common sense, i.e. features selection. Are all the features we have really necessary to begin with?
@@ -584,7 +558,7 @@ Part of the reason for the success and
 	\subsubsection{Data transformation}
 	The k-means clustering uses Euclidean distance to calculate the similarity between instances, therefore the attributes of the input should be continuous numerical values. The bike sharing dataset has a mixture of categorical and numerical values, we thus need some data transformation before running the k-means algorithm.
 	
-	Instead of using all information to clustering the data, we considered only cluster the daily bike rental patterns. In other words, we fed the hourly counts to the k-means algorithm to group the days with similar counts pattern. To achieve this, we transformed the cnt in hourly dataset into a $713 \times 24$ matrix as follows: \color{blue}
+	Instead of using all information to clustering the data, we considered only cluster the daily bike rental patterns. In other words, we fed the hourly counts to the k-means algorithm to group the days with similar counts pattern. To achieve this, we transformed the \texttt{cnt} in hourly dataset into a $713 \times 24$ matrix as follows: \color{blue}
 	\begin{verbatim} 
 	head(bike.24hourscnt)
  	  hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7 hr8 hr9 hr10 hr11 hr12 hr13 hr14 hr15
@@ -681,7 +655,7 @@ Total days: 145
 	\end{verbatim}
 \end{multicols} 
 \color{black}
-As we can see, cluster 1 and 4 are mainly composed of workingdays: 100\% in cluster 1, 98.6\% in cluster 4; cluster 3 are mainly composed of non-workingdays (97.26\%).  Cluster 2 is a mixture of workingdays and non-workingdays, but the average temperature in cluster 2 is obviously lower than that in other clusters. Therefore, workingday and temp are good attributes to separate the clusters.
+As we can see, cluster 1 and 4 are mainly composed of workingdays: 100\% in cluster 1, 98.6\% in cluster 4; cluster 3 are mainly composed of non-workingdays (97.26\%).  Cluster 2 is a mixture of workingdays and non-workingdays, but the average temperature in cluster 2 is obviously lower than that in other clusters. Therefore, workingday and \texttt{temp} are good attributes to separate the clusters.
 
 A drawing of average hourly counts on each cluster confirmed our findings:
 	\begin{figure}[H]
@@ -749,32 +723,17 @@ To determine how many clusters we should choose for the k-means, we used Davies-
  	
  	A better way to approach is separate data into day of events or not and train models separately on these two datasets. When a new data instance come, we first let the detector decide if it is event day, and pass it to correct model.
 	
-\section{Experimental Design}
-\label{sec:experimental-design}
 
+\section{Supervised Learning}
+\label{supervised learning}
 
+The most obvious supervised learning task is to predict \texttt{cnt}, which is a regression problem, since \texttt{cnt} is a continuous variable. This has practical applications, as any company managing a bicycle sharing system might be interested in having a predictive models that helps ensure the supply of bicycles is always appropriate.
 
-\section{Data preparation}
-
-\subsection{Feature Engineering}
-\label{sec:feature-engineering}
-TODO: MERGE THIS WITH YUE'S SECTION
-
-The relationship between \texttt{atemp} and \texttt{cnt} is non-linear, as can be seen from GRAPHREF. However, there seems to be a peak temperature for bike rentals at around PEAKTEMP. Hence, it would make sense to define a new variable corresponding to the (absolute value) difference between the current temperature and this ``ideal temperature''. Let \texttt{atempdiff} be defined as:
-\begin{verbatim}
-atempdiff <- abs(atemp - PEAKTEMP)
-\end{verbatim}
-Then, the relationship between \texttt{atemptdiff} and \texttt{cnt} is roughly linear as we can see from OTHERGRAPH.
-
-IDEM with \texttt{hum}, except the ``ideal humidity'' is at around 0.2.
-
-\section{Data Imputation}
+\subsection{Data Imputation}
 \label{sec:imputation}
-TODO: MERGE THIS WITH YUE"S SECTION
+As discussed in section of clustering, we observed that some rows were missing in the hourly Bike Sharing datasets. In total, 165 observations were missing in 76 different days. We decided that it would be wise to impute the missing data for the supervised learning, since it could help build a better regression model. Moreover, having no missing data would make the R programming significantly easier since the dataset structure would become more regular and hence much easier to work with.
 
-We observed that some rows were missing in the hourly Bike Sharing datasets. In total, 165 observations were missing in 76 different days. We decided that it would be wise to impute the missing data, since it could help build a better regression model. Moreover, having no missing data would make the R programming significantly easier since the dataset structure would become more regular and hence much easier to work with.
-
-\subsection{Imputation of Numeric Variables}
+\subsubsection{Imputation of Numeric Variables}
 We decided to use the \texttt{zoo} package to handle data imputation. The numeric variables (i.e. \texttt{temp}, \texttt{atemp}, \texttt{hum}, \texttt{windspeed}, \texttt{casual}, \texttt{registered}, \texttt{cnt}) were imputed using linear interpolation. This was very straightforward and produced results which we deemed acceptable for most variables such as \texttt{temp}, \texttt{atemp}, \texttt{hum} and \texttt{windspeed}. However, for \texttt{casual}, \texttt{registered} and \texttt{cnt}, the imputated data was clearly wrong in a few isolated cases. In the vast majority of the cases, only 1 or 2 observations were missing in a 24-hour period, in which case the linear interpolation was deemed appropriate. In fact, this was the case for 68 out of the 76 days with missing data. However, there were 8 days with a large number of missing observations (between 6 and 23 missing observations per 24-hour period). We decided to investigate visually the results of our imputation method for those days by constructing Figure~\ref{fig:badrows} below.
 \begin{figure}[H]
 	\centering
@@ -786,19 +745,12 @@ Without much surprise, linear interpolation of \texttt{cnt} produced poor result
 
 At this point, we had a choice to either (1) design more sophisticated imputation methods or to (2) simply discard those 6 days with poor imputation results. Since the vast majority of imputation was successful (70 out of 76 days), we decided that it was best to go with option (2) and simply flag as ``bad rows'' those 6 days from Figure~\ref{fig:badrows} for which imputation of \texttt{cnt} was poor. This allows us later to simply exclude those days completely in the training phase of supervised learning.
 
-\subsection{Imputation of Categorical Variables}
+\subsubsection{Imputation of Categorical Variables}
 
 At this point, we imputed all the numeric variables for all missing rows, but we are still missing all the categorical variables. Some of them such as \texttt{season}, \texttt{yr}, \texttt{mnth}, \texttt{hr}, \texttt{weekday} are very obvious. They can all be derived uniquely from the corresponding \texttt{datetime} variable in each new row.
 
 The categorical variables that are less obvious are \texttt{holiday}, \texttt{workingday} and \texttt{weathersit}. We decided to impute those values by taking a majority vote using all the other existing observations in the same day. In the case of \texttt{holiday} and \texttt{workingday}, this will obviously give the correct result. In the case of \texttt{weathersit}, this might not be exact, but it should be a decent approximation most of the time and we decided that the simplicity outweighed the disadvantages.
 
-\section{Experiments and Results}
-\label{sec:experiments-and-results}
-
-\section{Supervised Learning}
-\label{supervised learning}
-
-The most obvious supervised learning task is to predict \texttt{cnt}, which is a regression problem, since \texttt{cnt} is a continuous variable. This has practical applications, as any company managing a bicycle sharing system might be interested in having a predictive models that helps ensure the supply of bicycles is always appropriate.
 
 \subsection{Kaggle Competition}
 
@@ -954,12 +906,34 @@ Some recurrent neural networks are particularly well-suited to our task. Indeed,
 		0 & 0 & 0\\
 	\end{tabular}
 \end{table}
-\section{Conclusion and Further Work}
+
+\section{Conclusion}
 	\label{sec:conclusion}
+Through our project, we first tried visualizing the data to gain a general knowledge about the dataset. We have identified temperature, hour, workingday, and month as the most important features for predicting the bike rental demand though the data visualization. To explore more about the dataset, we did association rule mining and found the feature year is also a strong predictor for the bike rental demand.  
+
+We then tried unsupervised learning for dimensionality reduction and data reduction. For the dimensionality reduction, we used the PCA to reduce the number of features. For the data reduction, we tried k-means to group the similar instances together, and obtained from the DBI that 8 clusters separate the data very well. Another approach we tried for the data reduction is the outlier detection. compare the outcome of the three outliers we used to the result in Gama's paper about the event detection \cite{dataset}, our detectors can help to find almost half of the events listed in the table from Gama's paper. Overall, by using unsupervised learning, we can find a better representation of the data by summarizing and explaining key features of the data.
+	
+
+Finally, we used supervised learning to predict the \texttt{cnt}, which is a regression problem. We built two models to predict \texttt{registered} and \texttt{casual} separately and sum the results together for the \texttt{cnt}. The approaches we used are random forests regression, neural networks regression, ensemble of neural networks regression, and recurrent neural networks regression. To compare the performance of our approaches to that of other people, we participated in the Kaggle competition. Our final model PCA+avvNNet is ranking 111 on the leaderboard in Kaggle competition.  
 	
 \begin{thebibliography}{9}
 		\bibitem{dataset}
 		Fanaee-T, Hadi, and Gama, Joao, 'Event labeling combining ensemble detectors and background knowledge', Progress in Artificial Intelligence (2013): pp. 1-15, Springer Berlin Heidelberg.
-	\end{thebibliography}
 	
+	
+	\bibitem{online}
+	Brandon Harris. A simple model for kaggle bike sharing, 2014.
+	
+	\bibitem{jimmy}
+	Jimmy Du, Rolland He, Zhivko Zhechev. Forecasting Bike Rental Demand.
+	
+	\bibitem{romain}
+	Romain Giot, Raphael Cherrier. Predicting Bikeshare System Usage Up to One Day Ahead.
+	IEEE Symposium Series in Computational Intelligence 2014 (SSCI 2014). Workshop on Computational Intelligence in Vehicles and Transportation Systems (CIVTS 2014), Dec 2014, France.
+	pp.1-8. 
+	
+	\bibitem{master}
+	Arnab Kumar Datta. Predicting bike-share usage patterns with
+	machine learning. Master's Thesis.
+\end{thebibliography}
 \end{document}
